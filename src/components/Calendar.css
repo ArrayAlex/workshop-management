@@ -1,0 +1,58 @@
+/* src/Calendar.css */
+.current-time-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px; /* Thickness of the line */
+    background-color: red; /* Color of the line */
+    z-index: 10; /* Ensure the line is on top of other elements */
+}
+
+.fc {
+    height: 100vh; /* Full viewport height for FullCalendar */
+    overflow: hidden; /* Prevent scrolling */
+    display: flex; /* Enable flex layout */
+    flex-direction: column; /* Stack children vertically */
+}
+
+.fc-time-grid {
+    flex: 1; /* Allow the time grid to fill available height */
+    display: flex;
+    flex-direction: column; /* Arrange slots in a column */
+}
+
+.fc-timegrid-slot-major {
+    flex: 1; /* Allow major slots to fill available space */
+    border-bottom: 1px solid #eaeaea; /* Optional: Add a bottom border for clarity */
+}
+
+.fc-timegrid-slot-minor {
+    display: none; /* Hide minor time slots */
+}
+
+.fc-timegrid-slot {
+    height: 0; /* Remove fixed height */
+    flex-grow: 1; /* Allow slots to grow and fill space */
+    min-height: 30px; /* Set a minimum height for each slot (adjust as needed) */
+}
+
+.fc-timegrid-slot-lane {
+    display: flex;
+    align-items: center; /* Center content vertically */
+    justify-content: flex-start; /* Align content to the start */
+    padding: 0; /* Remove any extra padding */
+    width: 100%; /* Ensure it fills the full width */
+}
+
+/* Ensure responsiveness */
+@media (max-width: 768px) {
+    .fc-timegrid-slot-major {
+        min-height: 60px; /* Adjust minimum height for smaller screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .fc-timegrid-slot-major {
+        min-height: 50px; /* Further reduce minimum height for extra small screens */
+    }
+}
