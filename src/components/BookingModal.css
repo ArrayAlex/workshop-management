@@ -80,3 +80,50 @@
       max-width: 95vw;
     }
   }
+  #technicians-container {
+
+    position: relative;
+    z-index: 3;
+  }
+ 
+  
+  #technicians-select {
+    z-index: 3;
+  }
+  
+  #technicians-container .select__menu {
+    
+    z-index: 9999;
+    position: absolute;
+  }
+
+  #bottom-nav {
+    z-index: 0 !important;
+    position: relative;
+  }   
+  .select__menu-portal {
+    z-index: 9999;
+  }
+  .select__menu-list {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f7fafc;
+  }
+  
+  .select__menu-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .select__menu-list::-webkit-scrollbar-track {
+    background: #f7fafc;
+  }
+  
+  .select__menu-list::-webkit-scrollbar-thumb {
+    background-color: #cbd5e0;
+    border-radius: 3px;
+  }
+  
+  /* Ensure the dropdown options are not too tall */
+  .select__option {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }

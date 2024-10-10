@@ -20,7 +20,7 @@ const Calendar = () => {
       title: 'Job 1020 - Princess Leia', 
       start: new Date('2024-10-10T08:00:00'), 
       end: new Date('2024-10-10T09:00:00'), 
-      technicians: ['R2-D2', 'C-3PO'], 
+      technicians: ['R2-D2', 'Luke'], 
       description: 'Escape pod installation', 
       jobStatus: 'Booked', 
       pickup: new Date('2024-10-10T17:00:00'),
@@ -39,11 +39,16 @@ const Calendar = () => {
     },
   ]);
 
+
   const [technicians] = useState([
     { value: 'R2-D2', label: 'R2-D2' },
     { value: 'C-3PO', label: 'C-3PO' },
     { value: 'Chewbacca', label: 'Chewbacca' },
     { value: 'Luke', label: 'Luke' },
+    { value: 'Alex', label: 'Alex' },
+    { value: 'Bryan', label: 'Bryan' },
+    { value: 'Peter', label: 'Peter' },
+    { value: 'Stewie', label: 'Stewie' },
   ]);
   const calendarRef = useRef(null);
 

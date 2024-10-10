@@ -34,15 +34,69 @@ const BookingModal = ({ isOpen, onClose, editedEvent, onSave, technicians }) => 
 
   if (!localEvent) return null;
 
+  const customStyles = {
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      marginRight: '-50%',
+      transform: 'translate(-50%, -50%)',
+      padding: '0',
+      border: 'none',
+      borderRadius: '0.5rem',
+      maxWidth: '80vw',
+      width: '100%',
+      maxHeight: '90vh',
+      overflow: 'visible',
+    },
+    overlay: {
+      backgroundColor: 'rgba(0, 0, 0, 0.75)',
+      zIndex: 1000,
+    },
+  };
+
+  const selectStyles = {
+    control: (provided) => ({
+      ...provided,
+      minHeight: '38px',
+      height: '38px',
+    }),
+    valueContainer: (provided) => ({
+      ...provided,
+      height: '38px',
+      padding: '0 6px',
+    }),
+    input: (provided) => ({
+      ...provided,
+      margin: '0px',
+    }),
+    indicatorsContainer: (provided) => ({
+      ...provided,
+      height: '38px',
+    }),
+    menu: (provided) => ({
+      ...provided,
+      zIndex: 9999,
+    }),
+    menuPortal: (provided) => ({
+      ...provided,
+      zIndex: 9999,
+    }),
+    menuList: (provided) => ({
+      ...provided,
+      maxHeight: '150px', // Smaller dropdown
+    }),
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
       contentLabel="Booking Details"
-      className="custom-modal"
-      overlayClassName="custom-overlay"
+      style={customStyles}
     >
-      <div className="bg-white rounded-lg shadow-xl overflow-hidden max-w-4xl w-full">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl">
         <div className="bg-blue-600 text-white px-6 py-4 flex justify-between items-center">
           <h2 className="text-2xl font-bold">Job {localEvent.id}</h2>
           <button onClick={onClose} className="text-white hover:text-gray-200">
@@ -51,7 +105,7 @@ const BookingModal = ({ isOpen, onClose, editedEvent, onSave, technicians }) => 
             </svg>
           </button>
         </div>
-        <div className="p-6">
+        <div className="p-6 max-h-[calc(90vh-8rem)] overflow-y-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
@@ -140,7 +194,7 @@ const BookingModal = ({ isOpen, onClose, editedEvent, onSave, technicians }) => 
                   className="form-input"
                 />
               </div>
-              <div>
+              <div className="z-50">
                 <label className="form-label">Technicians</label>
                 <Select
                   isMulti
@@ -150,6 +204,11 @@ const BookingModal = ({ isOpen, onClose, editedEvent, onSave, technicians }) => 
                   onChange={handleTechnicianChange}
                   className="basic-multi-select"
                   classNamePrefix="select"
+                  styles={selectStyles}
+                  menuPortalTarget={document.body}
+                  menuPosition="fixed"
+                  isSearchable={true}
+                  placeholder="Search technicians..."
                 />
               </div>
               <div>
