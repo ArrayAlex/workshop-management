@@ -1,58 +1,191 @@
-/* src/Calendar.css */
-.current-time-line {
+/* Calendar styling */
+.fc {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    z-index: 1;
+  }
+  
+  /* Header styling */
+  .fc-header-toolbar {
+    margin-bottom: 1.5em !important;
+    background-color: #ffffff;
+    border-radius: 6px;
+    padding: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .fc-toolbar-title {
+    font-size: 1.5em !important;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .fc-button-primary {
+    background-color: #007bff !important;
+    border-color: #007bff !important;
+    transition: all 0.3s ease;
+  }
+  
+  .fc-button-primary:hover {
+    background-color: #0056b3 !important;
+    border-color: #0056b3 !important;
+  }
+  
+  /* Day header styling */
+  .fc-col-header-cell {
+    background-color: #e9ecef;
+    font-weight: bold;
+    color: #495057;
+    padding: 10px 0 !important;
+  }
+  
+  /* Event styling */
+  .fc-event {
+    border: none !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    font-size: 0.85em !important;
+    transition: all 0.2s ease;
+  }
+  
+  .fc-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .event-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  .event-header {
+    display: flex;
+    align-items: center;
+    padding: 2px 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: white;
+  }
+  
+  .event-time {
+    margin-right: 4px;
+  }
+  
+  .event-id {
+    font-size: 0.9em;
+  }
+  
+  .event-body {
+    padding: 2px 4px;
+    background-color: white;
+    flex-grow: 1;
+  }
+  
+  .event-title {
+    font-size: 0.9em;
+    color: black;
+    font-weight: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Technician icons styling */
+  .technician-icons {
+    display: flex;
+    margin-top: 2px;
+  }
+  
+  .technician-icon {
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    margin-right: 2px;
+  }
+  
+  /* Time grid styling */
+  .fc-timegrid-slot {
+    height: 3em !important;
+  }
+  
+  .fc-timegrid-slot-label {
+    font-size: 0.8em;
+    color: #6c757d;
+  }
+  
+  .fc-timegrid-event {
+    min-height: 2em;
+  }
+  
+  /* List view styling */
+  .fc-list-day-cushion {
+    background-color: #e9ecef !important;
+  }
+  
+  .fc-list-event:hover td {
+    background-color: #f1f3f5;
+  }
+  
+  /* Today highlight */
+  .fc-day-today {
+    background-color: #fff3cd !important;
+  }
+  
+  /* Capacity info styling */
+  .capacity-info {
+    font-size: 0.75rem;
+    color: #666;
+  }
+  
+  /* Current time line */
+  .current-time-line {
     position: absolute;
     left: 0;
     right: 0;
-    height: 2px; /* Thickness of the line */
-    background-color: red; /* Color of the line */
-    z-index: 10; /* Ensure the line is on top of other elements */
-}
-
-.fc {
-    height: 100vh; /* Full viewport height for FullCalendar */
-    overflow: hidden; /* Prevent scrolling */
-    display: flex; /* Enable flex layout */
-    flex-direction: column; /* Stack children vertically */
-}
-
-.fc-time-grid {
-    flex: 1; /* Allow the time grid to fill available height */
-    display: flex;
-    flex-direction: column; /* Arrange slots in a column */
-}
-
-.fc-timegrid-slot-major {
-    flex: 1; /* Allow major slots to fill available space */
-    border-bottom: 1px solid #eaeaea; /* Optional: Add a bottom border for clarity */
-}
-
-.fc-timegrid-slot-minor {
-    display: none; /* Hide minor time slots */
-}
-
-.fc-timegrid-slot {
-    height: 0; /* Remove fixed height */
-    flex-grow: 1; /* Allow slots to grow and fill space */
-    min-height: 30px; /* Set a minimum height for each slot (adjust as needed) */
-}
-
-.fc-timegrid-slot-lane {
-    display: flex;
-    align-items: center; /* Center content vertically */
-    justify-content: flex-start; /* Align content to the start */
-    padding: 0; /* Remove any extra padding */
-    width: 100%; /* Ensure it fills the full width */
-}
-
-/* Ensure responsiveness */
-@media (max-width: 768px) {
-    .fc-timegrid-slot-major {
-        min-height: 60px; /* Adjust minimum height for smaller screens */
+    height: 2px;
+    background-color: red;
+    z-index: 10;
+  }
+  
+  /* Custom classes for different job statuses */
+  .event-container.job-booked .event-header {
+    background-color: #28a745;
+  }
+  
+  .event-container.job-in-progress .event-header {
+    background-color: #ffc107;
+  }
+  
+  .event-container.job-completed .event-header {
+    background-color: #17a2b8;
+  }
+  
+  .event-container.job-cancelled .event-header {
+    background-color: #dc3545;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .fc-toolbar-title {
+      font-size: 1.2em !important;
     }
-}
-
-@media (max-width: 480px) {
-    .fc-timegrid-slot-major {
-        min-height: 50px; /* Further reduce minimum height for extra small screens */
+    
+    .fc-header-toolbar {
+      flex-direction: column;
+      align-items: stretch;
     }
-}
+    
+    .fc-toolbar-chunk {
+      margin-bottom: 10px;
+    }
+  }

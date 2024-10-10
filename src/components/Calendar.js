@@ -1,136 +1,202 @@
-// src/components/Calendar.js
 import React, { useState, useEffect, useRef } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction'; // enables drag and drop
+import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import momentPlugin from '@fullcalendar/moment';
-import Modal from 'react-modal';
-import Navbar from './Navbar'; // Import Navbar
-import Sidebar from './Sidebar'; // Import Sidebar
-import './Calendar.css'; // Import your CSS file
+import Navbar from './Navbar';
+import Sidebar from './Sidebar';
+import BookingModal from './BookingModal';
+import './Calendar.css';
 
 const Calendar = () => {
   const [modalIsOpen, setIsOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [editedEvent, setEditedEvent] = useState(null);
   const [events, setEvents] = useState([
-    { id: '1', title: 'Client Meeting', start: '2024-10-10T10:30:00', end: '2024-10-10T12:30:00' },
-    { id: '2', title: 'Team Standup', start: '2024-10-11T09:00:00', end: '2024-10-11T10:00:00' }
+    { 
+      id: '1', 
+      title: 'Job 1020 - Princess Leia', 
+      start: new Date('2024-10-10T08:00:00'), 
+      end: new Date('2024-10-10T09:00:00'), 
+      technicians: ['R2-D2', 'C-3PO'], 
+      description: 'Escape pod installation', 
+      jobStatus: 'Booked', 
+      pickup: new Date('2024-10-10T17:00:00'),
+      extendedProps: { jobId: '1020' }
+    },
+    { 
+      id: '2', 
+      title: 'Job 1021 - Han Solo', 
+      start: new Date('2024-10-11T09:00:00'), 
+      end: new Date('2024-10-11T10:00:00'), 
+      technicians: ['Chewbacca'], 
+      description: 'Falcon repairs', 
+      jobStatus: 'In Progress', 
+      pickup: new Date('2024-10-11T18:00:00'),
+      extendedProps: { jobId: '1021' }
+    },
   ]);
 
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [technicians] = useState([
+    { value: 'R2-D2', label: 'R2-D2' },
+    { value: 'C-3PO', label: 'C-3PO' },
+    { value: 'Chewbacca', label: 'Chewbacca' },
+    { value: 'Luke', label: 'Luke' },
+  ]);
   const calendarRef = useRef(null);
 
   const openModal = (eventInfo) => {
     setSelectedEvent(eventInfo.event);
+    setEditedEvent({
+      ...eventInfo.event.extendedProps,
+      id: eventInfo.event.id,
+      title: eventInfo.event.title,
+      start: eventInfo.event.start,
+      end: eventInfo.event.end,
+      technicians: eventInfo.event.extendedProps.technicians.map(tech => ({ value: tech, label: tech })),
+    });
     setIsOpen(true);
   };
 
   const closeModal = () => {
     setIsOpen(false);
+    setEditedEvent(null);
   };
 
   const handleDateClick = (info) => {
     alert(`Clicked on date: ${info.dateStr}`);
   };
 
-  const handleEventDrop = (info) => {
-    const updatedEvents = events.map(event => {
-      if (event.id === info.event.id) {
-        return { ...event, start: info.event.start, end: info.event.end };
-      }
-      return event;
-    });
-    setEvents(updatedEvents);
-  };
-
   const handleEventClick = (info) => {
     openModal(info);
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000); // Update every minute
-    return () => clearInterval(interval);
-  }, []);
+  const handleSave = (updatedEvent) => {
+    const updatedEvents = events.map(event => 
+      event.id === updatedEvent.id ? { 
+        ...event, 
+        ...updatedEvent, 
+        technicians: updatedEvent.technicians.map(tech => tech.value)
+      } : event
+    );
+    setEvents(updatedEvents);
+    closeModal();
+  };
+
+  const calculateCapacity = (date) => {
+    const hoursInDay = 8 * technicians.length;
+    const jobsToday = events.filter(event => new Date(event.start).toDateString() === new Date(date).toDateString());
+    const bookedHours = jobsToday.reduce((total, job) => total + (new Date(job.end) - new Date(job.start)) / (1000 * 60 * 60), 0);
+    const freeHours = hoursInDay - bookedHours;
+    const freeHoursPercentage = ((freeHours / hoursInDay) * 100).toFixed(1);
+
+    return {
+      jobs: jobsToday.length,
+      freeHours,
+      freeHoursPercentage,
+    };
+  };
+
+  const renderDayHeaderContent = (arg) => {
+    const { jobs, freeHours, freeHoursPercentage } = calculateCapacity(arg.date);
+    return (
+      <div>
+        <h2 style={{ fontSize: '14px', margin: '0' }}>{arg.text}</h2>
+        <div className="capacity-info">
+          <h4 style={{ fontSize: '12px', margin: '0' }}>Jobs: {jobs}</h4>
+          <h5 style={{ fontSize: '10px', margin: '0' }}>Free: {freeHours.toFixed(2)}h ({freeHoursPercentage}%)</h5>
+        </div>
+      </div>
+    );
+  };
+
+  const renderEventContent = (eventInfo) => {
+    const jobId = eventInfo.event.extendedProps.jobId;
+    const jobStatus = eventInfo.event.extendedProps.jobStatus.toLowerCase().replace(' ', '-');
+    
+    return (
+      <div className={`event-container job-${jobStatus}`}>
+        <div className="event-header">
+          <span className="event-time">{eventInfo.timeText}</span>
+          <span className="event-id">#{jobId}</span>
+        </div>
+        <div className="event-body">
+          <div className="event-title">{eventInfo.event.title}</div>
+          <div className="technician-icons">
+            {eventInfo.event.extendedProps.technicians.map((tech, index) => {
+              const initials = tech.split(' ').map(name => name[0]).join('');
+              const backgroundColor = generateColor(initials);
+              return (
+                <span 
+                  key={index} 
+                  className="technician-icon" 
+                  title={tech}
+                  style={{ backgroundColor }}
+                >
+                  {initials}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const generateColor = (initials) => {
+    const colors = [
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', 
+      '#F06292', '#AED581', '#7986CB', '#4DB6AC', '#FFD54F'
+    ];
+    
+    const colorIndex = initials.charCodeAt(0) % colors.length;
+    return colors[colorIndex];
+  };
 
   return (
     <div className="flex flex-col h-screen bg-white-100">
-      {/* Navbar */}
       <Navbar />
-
       <div className="flex flex-1">
-        {/* Sidebar */}
         <Sidebar />
-
-        {/* Main Calendar Content */}
         <div className="flex-1 p-5 relative overflow-hidden">
           <h2 className="font-semibold text-2xl mb-4">Workshop Calendar</h2>
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin, momentPlugin]}
-            initialView="timeGridWeek" // Set the initial view to week
+            initialView="timeGridWeek"
             headerToolbar={{
               left: 'prev,next today',
               center: 'title',
-              right: 'timeGridWeek,timeGridDay,listWeek' // Adjust toolbar buttons to remove month view
+              right: 'timeGridWeek,timeGridDay,listWeek'
             }}
-            editable={true} // allows drag-and-drop
-            droppable={true} // allows external drag sources
+            nowIndicator={true}
+            editable={true}
+            droppable={true}
             selectable={true}
             events={events}
             dateClick={handleDateClick}
             eventClick={handleEventClick}
-            eventDrop={handleEventDrop} // handle drag and drop
-            slotMinTime="07:00:00" // Start time for the time grid
-            slotMaxTime="18:00:00" // End time for the time grid
-            scrollTime="07:00:00" // Set scroll time to prevent middle hour line
-            height="100vh" // Full height of the viewport
-            eventDidMount={(info) => {
-              // Hide the middle hour line (12 PM)
-              const hourLines = info.el.querySelectorAll('.fc-time-grid .fc-hour');
-              hourLines.forEach(line => {
-                if (line.getAttribute('data-date') === '12') {
-                  line.style.display = 'none';
-                }
-              });
-            }}
-            dayMaxEvents={true} // Allow "more" link when too many events
+            slotMinTime="07:00:00"
+            slotMaxTime="18:00:00"
+            scrollTime="07:00:00"
+            height="auto"
+            dayMaxEvents={true}
+            dayHeaderContent={renderDayHeaderContent}
+            eventContent={renderEventContent}
+            allDaySlot={false} 
           />
-          <div
-            className="current-time-line"
-            style={{
-              position: 'absolute',
-              top: `${((currentTime.getHours() * 60) + currentTime.getMinutes()) * 2}px`, // Adjust the factor for correct positioning
-              left: 0,
-              right: 0,
-              height: '2px', // Adjust thickness
-              backgroundColor: 'red', // Color of the line
-              zIndex: 10 // Make sure the line is on top of other elements
-            }}
-          ></div>
         </div>
       </div>
 
-      {/* Modal for Event Details */}
-      <Modal isOpen={modalIsOpen} onRequestClose={closeModal} contentLabel="Event Details">
-        {selectedEvent && (
-          <div>
-            <h2 className="text-xl font-bold">{selectedEvent.title}</h2>
-            <p>
-              <strong>Start:</strong> {selectedEvent.start.toLocaleString()}
-            </p>
-            <p>
-              <strong>End:</strong> {selectedEvent.end ? selectedEvent.end.toLocaleString() : 'N/A'}
-            </p>
-            <button onClick={closeModal} className="bg-blue-600 text-white px-4 py-2 rounded mt-4">
-              Close
-            </button>
-          </div>
-        )}
-      </Modal>
+      <BookingModal
+        isOpen={modalIsOpen}
+        onClose={closeModal}
+        editedEvent={editedEvent}
+        onSave={handleSave}
+        technicians={technicians}
+      />
     </div>
   );
 };

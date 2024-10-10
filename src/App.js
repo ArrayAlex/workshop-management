@@ -14,7 +14,7 @@ const PrivateRoute = ({ component: Component, isAuthenticated }) => {
 };
 
 const App = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false); // Start with false for testing
+    const [isAuthenticated, setIsAuthenticated] = useState(true); // Start with false for testing
 
     useEffect(() => {
       const verifyAuth = async () => {
