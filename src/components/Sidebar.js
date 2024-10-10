@@ -21,12 +21,12 @@ const Sidebar = () => {
             Job Board
           </Link>
         </li>
-        <li>
+        {/* <li>
           <Link to="/vehicles" className="flex items-center block hover:bg-gray-200 p-2 rounded">
             <FontAwesomeIcon icon={faCar} className="h-5 w-5 mr-2 text-gray-700" />
             Vehicles
           </Link>
-        </li>
+        </li> */}
         <li>
           <Link to="/cal" className="flex items-center block hover:bg-gray-200 p-2 rounded">
             <FontAwesomeIcon icon={faUsers} className="h-5 w-5 mr-2 text-gray-700" />
