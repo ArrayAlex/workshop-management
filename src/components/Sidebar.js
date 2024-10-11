@@ -29,8 +29,8 @@ const Sidebar = () => {
         </li> */}
         <li>
           <Link to="/cal" className="flex items-center block hover:bg-gray-200 p-2 rounded">
-            <FontAwesomeIcon icon={faUsers} className="h-5 w-5 mr-2 text-gray-700" />
-            Calender
+            <FontAwesomeIcon icon={faCalendarAlt} className="h-5 w-5 mr-2 text-gray-700" />
+            Diary
           </Link>
         </li>
         <li>
@@ -39,12 +39,7 @@ const Sidebar = () => {
             Customers
           </Link>
         </li>
-        <li>
-          <Link to="/appointments" className="flex items-center block hover:bg-gray-200 p-2 rounded">
-            <FontAwesomeIcon icon={faCalendarAlt} className="h-5 w-5 mr-2 text-gray-700" />
-            Appointments
-          </Link>
-        </li>
+        
         <li>
           <Link to="/reports" className="flex items-center block hover:bg-gray-200 p-2 rounded">
             <FontAwesomeIcon icon={faChartBar} className="h-5 w-5 mr-2 text-gray-700" />

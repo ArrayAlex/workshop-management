@@ -77,7 +77,7 @@
   }
   
   .event-id {
-    font-size: 0.9em;
+    font-size: 1.1em;
   }
   
   .event-body {
@@ -97,6 +97,7 @@
   
   /* Technician icons styling */
   .technician-icons {
+    z-index: 9999;
     display: flex;
     margin-top: 2px;
   }
@@ -189,3 +190,164 @@
       margin-bottom: 10px;
     }
   }
+
+  .fc-timegrid-event-harness {
+    opacity: 0.9;
+  }
+  
+  .event-container {
+    padding: 2px 4px;
+    overflow: hidden;
+    font-size: 0.8em;
+  }
+  
+  .event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+  }
+  
+  .event-id {
+    flex-shrink: 0;
+  }
+  
+  .event-time {
+    font-size: 0.9em;
+    margin-left: 4px;
+  }
+  
+  .event-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .technician-icons {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 2px;
+  }
+  
+  .technician-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 2px;
+    margin-bottom: 2px;
+    font-size: 0.7em;
+  }
+  
+  .short-event .event-header {
+    font-size: 0.9em;
+  }
+  
+  .short-event .event-time,
+  .short-event .event-body {
+    display: none;
+  }
+  
+  /* Add styles for different job statuses */
+  .job-booked { background-color: #e3f2fd; }
+  .job-in-progress { background-color: #fff9c4; }
+
+  /* ... (previous styles remain the same) */
+
+.fc-timegrid-event {
+  overflow: visible !important; /* Override FullCalendar's default overflow: hidden */
+}
+
+.event-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  padding: 2px 4px;
+  overflow: visible;
+  font-size: 0.8em;
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
+
+.event-body {
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.event-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.technician-icons {
+  position: absolute;
+  bottom: -10px;
+  left: 2px; /* Align to the left */
+  display: flex;
+  flex-wrap: wrap;
+  z-index: 10;
+}
+
+.long-event .technician-icons {
+  bottom: -10px; /* Adjust this value to position icons half in, half out */
+}
+
+.technician-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 2px;
+  margin-bottom: 2px;
+  font-size: 0.7em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.short-event .event-time,
+.short-event .event-body {
+  display: none;
+}
+
+/* Ensure the event container can accommodate the overlapping icons */
+.fc-timegrid-event-harness {
+  margin-bottom: 10px;
+}
+
+/* Add styles for different job statuses */
+.job-booked { background-color: #e3f2fd; }
+.job-in-progress { background-color: #fff9c4; }
+.job-completed { background-color: #e8f5e9; }
+.job-cancelled { background-color: #ffebee; }
+.event-hover-dialog {
+  position: fixed;
+  z-index: 1000;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  font-size: 0.9em;
+  max-width: 250px;
+}
+
+.event-hover-dialog h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+.event-hover-dialog p {
+  margin: 4px 0;
+}
+

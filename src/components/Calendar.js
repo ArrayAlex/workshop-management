@@ -9,10 +9,42 @@ import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import BookingModal from './BookingModal';
 import './Calendar.css';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, List } from 'lucide-react';
+import { debounce } from 'lodash';
 
 const WORK_DAY_START = '07:00:00';
 const WORK_DAY_END = '18:00:00';
 const WORKING_HOURS = 11; // Calculated from 07:00 to 18:00
+
+const EventHoverDialog = ({ event, position, onMouseEnter }) => {
+  if (!event) return null;
+
+  return (
+    <div 
+      className="event-hover-dialog" 
+      style={{ 
+        position: 'fixed', 
+        top: position.y, 
+        left: position.x,
+        zIndex: 1000,
+        backgroundColor: 'white',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        padding: '8px',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+      }}
+      onMouseEnter={onMouseEnter}
+    >
+      <h3>{event.title}</h3>
+      <p>Job ID: {event.extendedProps.jobId}</p>
+      <p>Status: {event.extendedProps.jobStatus}</p>
+      <p>Time: {event.start.toLocaleTimeString()} - {event.end.toLocaleTimeString()}</p>
+      <p>Description: {event.extendedProps.description}</p>
+      <p>Technicians: {event.extendedProps.technicians.join(', ')}</p>
+      <p>Pickup: {event.extendedProps.pickup.toLocaleString()}</p>
+    </div>
+  );
+};
 
 const Calendar = () => {
   const [modalIsOpen, setIsOpen] = useState(false);
@@ -40,9 +72,54 @@ const Calendar = () => {
       description: 'Falcon repairs', 
       jobStatus: 'In Progress', 
       pickup: new Date('2024-10-11T18:00:00'),
-      extendedProps: { jobId: '1021' }
+      extendedProps: { jobId: '1023' }
+    },
+    { 
+      id: '5', 
+      title: 'Job 1021 - Han Solo', 
+      start: new Date('2024-10-12T09:00:00'), 
+      end: new Date('2024-10-12T10:00:00'), 
+      technicians: ['Peter'], 
+      description: 'Engine Swap', 
+      jobStatus: 'Completed', 
+      pickup: new Date('2024-10-11T18:00:00'),
+      extendedProps: { jobId: '1022' }
+    },
+    { 
+      id: '4', 
+      title: 'Job 1021 - Han Solo', 
+      start: new Date('2024-10-09T09:00:00'), 
+      end: new Date('2024-10-09T10:00:00'), 
+      technicians: ['Peter'], 
+      description: 'Wheel Alignment', 
+      jobStatus: 'Cancelled', 
+      pickup: new Date('2024-10-11T18:00:00'),
+      extendedProps: { jobId: '1024' }
+    },
+    { 
+      id: '6', 
+      title: 'Job 1021 - Han Solo', 
+      start: new Date('2024-10-11T09:00:00'), 
+      end: new Date('2024-10-11T10:00:00'), 
+      technicians: ['Chewbacca'], 
+      description: 'Falcon repairs', 
+      jobStatus: 'In Progress', 
+      pickup: new Date('2024-10-11T18:00:00'),
+      extendedProps: { jobId: '1025' }
     },
   ]);
+
+  const [hoverEvent, setHoverEvent] = useState(null);
+  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
+  const [isOverDialog, setIsOverDialog] = useState(false);
+
+  const handleMouseMove = useCallback((e) => {
+    if (hoverEvent) {
+      setHoverPosition({ x: e.clientX + 10, y: e.clientY + 10 });
+    }
+  }, [hoverEvent]);
+
+  const calendarRef = useRef(null);
 
   const getCapacityColor = (freeHoursPercentage) => {
     const percentage = parseFloat(freeHoursPercentage);
@@ -61,7 +138,62 @@ const Calendar = () => {
     { value: 'Peter', label: 'Peter' },
     { value: 'Stewie', label: 'Stewie' },
   ]);
-  const calendarRef = useRef(null);
+
+  const debouncedSetHoverEvent = useCallback(
+    debounce((event, position) => {
+      setHoverEvent(event);
+      setHoverPosition(position);
+    }, 100),
+    []
+  );
+
+  const handleEventMouseEnter = useCallback((mouseEnterInfo) => {
+    setHoverEvent(mouseEnterInfo.event);
+    setHoverPosition({
+      x: mouseEnterInfo.jsEvent.clientX + 10,
+      y: mouseEnterInfo.jsEvent.clientY + 10,
+    });
+  }, []);
+
+  const handleEventMouseLeave = useCallback(() => {
+    // We'll handle closing in a separate effect
+  }, []); 
+
+
+  const handleDialogMouseEnter = useCallback(() => {
+    setIsOverDialog(true);
+  }, []);
+
+  useEffect(() => {
+    const handleGlobalMouseMove = (e) => {
+      handleMouseMove(e);
+
+      // Check if the mouse is over a calendar event
+      const eventElement = e.target.closest('.fc-event');
+      if (!eventElement && !isOverDialog) {
+        setHoverEvent(null);
+      }
+    };
+
+    document.addEventListener('mousemove', handleGlobalMouseMove);
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+    };
+  }, [handleMouseMove, isOverDialog]);
+
+  useEffect(() => {
+    const handleMouseLeave = () => {
+      setHoverEvent(null);
+      setIsOverDialog(false);
+    };
+
+    document.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      document.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
 
   const openModal = (eventInfo) => {
     setSelectedEvent(eventInfo.event);
@@ -89,6 +221,61 @@ const Calendar = () => {
     openModal(info);
   };
 
+  const CustomToolbar = ({ calendarRef }) => {
+    const handlePrev = () => {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.prev();
+    };
+  
+    const handleNext = () => {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.next();
+    };
+  
+    const handleToday = () => {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.today();
+    };
+  
+    const handleViewChange = (view) => {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.changeView(view);
+    };
+  
+    return (
+      <div className="custom-toolbar bg-gray-800 text-white p-4 flex justify-between items-center">
+        <div className="flex items-center space-x-4">
+          <button onClick={handlePrev} className="p-2 bg-gray-700 rounded hover:bg-gray-600">
+            <ChevronLeft size={24} />
+          </button>
+          <button onClick={handleNext} className="p-2 bg-gray-700 rounded hover:bg-gray-600">
+            <ChevronRight size={24} />
+          </button>
+          <button onClick={handleToday} className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500">
+            Today
+          </button>
+        </div>
+        <div className="text-2xl font-bold">
+          Workshop Calendar
+        </div>
+        <div className="flex items-center space-x-4">
+          <button onClick={() => handleViewChange('timeGridWeek')} className="flex items-center space-x-2 p-2 bg-gray-700 rounded hover:bg-gray-600">
+            <CalendarIcon size={20} />
+            <span>Week</span>
+          </button>
+          <button onClick={() => handleViewChange('timeGridDay')} className="flex items-center space-x-2 p-2 bg-gray-700 rounded hover:bg-gray-600">
+            <Clock size={20} />
+            <span>Day</span>
+          </button>
+          <button onClick={() => handleViewChange('listWeek')} className="flex items-center space-x-2 p-2 bg-gray-700 rounded hover:bg-gray-600">
+            <List size={20} />
+            <span>List</span>
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const handleSave = (updatedEvent) => {
     setEvents(prevEvents => prevEvents.map(event => 
       event.id === updatedEvent.id ? { 
@@ -113,7 +300,7 @@ const Calendar = () => {
       const jobStart = new Date(job.start);
       const jobEnd = new Date(job.end);
       const jobDuration = (jobEnd - jobStart) / (1000 * 60 * 60);
-      return total + jobDuration; // Remove multiplication by technician count
+      return total + jobDuration;
     }, 0);
 
     const freeHours = Math.max(0, WORKING_HOURS - bookedHours);
@@ -159,36 +346,45 @@ const Calendar = () => {
       </div>
     );
   };
-  
+
   const renderEventContent = (eventInfo) => {
-    const jobId = eventInfo.event.extendedProps.jobId;
-    const jobStatus = eventInfo.event.extendedProps.jobStatus.toLowerCase().replace(' ', '-');
+    const { event } = eventInfo;
+    const jobId = event.extendedProps.jobId;
+    const jobStatus = event.extendedProps.jobStatus.toLowerCase().replace(' ', '-');
+    
+    const durationInMinutes = (event.end - event.start) / (1000 * 60);
+    const isShort = durationInMinutes <= 30;
     
     return (
-      <div className={`event-container job-${jobStatus}`}>
+      <div 
+        className={`event-container job-${jobStatus} ${isShort ? 'short-event' : ''}`}
+        onMouseEnter={(e) => handleEventMouseEnter({ event, jsEvent: e })}
+        onMouseLeave={handleEventMouseLeave}
+      >
         <div className="event-header">
-          <span className="event-time">{eventInfo.timeText}</span>
           <span className="event-id">#{jobId}</span>
+          {!isShort && <span className="event-time">{eventInfo.timeText}</span>}
         </div>
-        <div className="event-body">
-          <div className="event-title">{eventInfo.event.title}</div>
-          <div className="technician-icons">
-            {eventInfo.event.extendedProps.technicians.map((tech, index) => {
-              const initials = tech.split(' ').map(name => name[0]).join('');
-              const backgroundColor = generateColor(initials);
-              return (
-                <span 
-                  key={index} 
-                  className="technician-icon" 
-                  title={tech}
-                  style={{ backgroundColor }}
-                >
-                  {initials}
-                </span>
-              );
-            })}
+        {!isShort && (
+          <div className="event-body">
+            <div className="event-title">{event.title}</div>
+            <div className="technician-icons">
+              {event.extendedProps.technicians.map((tech, index) => {
+                const initials = tech.split(' ').map(name => name[0]).join('');
+                return (
+                  <span 
+                    key={index} 
+                    className="technician-icon" 
+                    title={tech}
+                    style={{ backgroundColor: generateColor(initials) }}
+                  >
+                    {initials}
+                  </span>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     );
   };
@@ -221,16 +417,13 @@ const Calendar = () => {
       <div className="flex flex-1">
         <Sidebar />
         <div className="flex-1 p-5 relative overflow-hidden">
-          <h2 className="font-semibold text-2xl mb-4">Workshop Calendar</h2>
+          
+          <CustomToolbar calendarRef={calendarRef} />
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin, momentPlugin]}
             initialView="timeGridWeek"
-            headerToolbar={{
-              left: 'prev,next today',
-              center: 'title',
-              right: 'timeGridWeek,timeGridDay,listWeek'
-            }}
+            headerToolbar={false}
             nowIndicator={true}
             editable={true}
             droppable={true}
@@ -248,7 +441,17 @@ const Calendar = () => {
             dayHeaderContent={renderDayHeaderContent}
             eventContent={renderEventContent}
             allDaySlot={false} 
+            
+            eventMouseEnter={handleEventMouseEnter}
+            eventMouseLeave={handleEventMouseLeave}
           />
+          {hoverEvent && (
+        <EventHoverDialog 
+          event={hoverEvent} 
+          position={hoverPosition} 
+          onMouseEnter={handleDialogMouseEnter}
+        />
+      )}
         </div>
       </div>
 
