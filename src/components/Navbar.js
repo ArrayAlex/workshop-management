@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-
+import './Navbar.css'
 const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -54,7 +54,7 @@ const Navbar = () => {
           </button>
           {/* Dropdown Menu for Profile Info */}
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg">
+            <div id="profile-dropdown" className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg">
               <div className="p-2 border-b">
                 <strong>John Doe</strong><br />
                 <span>Position: Technician</span>

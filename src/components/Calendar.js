@@ -44,6 +44,13 @@ const Calendar = () => {
     },
   ]);
 
+  const getCapacityColor = (freeHoursPercentage) => {
+    const percentage = parseFloat(freeHoursPercentage);
+    if (percentage < 20) return 'red';
+    if (percentage < 40) return 'orange';
+    return 'green';
+  };
+
   const [technicians] = useState([
     { value: 'R2-D2', label: 'R2-D2' },
     { value: 'C-3PO', label: 'C-3PO' },
@@ -138,20 +145,21 @@ const Calendar = () => {
   const renderDayHeaderContent = (arg) => {
     const dateStr = arg.date.toISOString().split('T')[0];
     const capacity = capacityData[dateStr] || { jobs: 0, freeHours: WORKING_HOURS, freeHoursPercentage: '100.0' };
+    const capacityColor = getCapacityColor(capacity.freeHoursPercentage);
 
     return (
       <div>
         <h2 style={{ fontSize: '14px', margin: '0' }}>{arg.text}</h2>
         <div className="capacity-info">
           <h4 style={{ fontSize: '12px', margin: '0' }}>Jobs: {capacity.jobs}</h4>
-          <h5 style={{ fontSize: '10px', margin: '0' }}>
+          <h5 style={{ fontSize: '10px', margin: '0', color: capacityColor }}>
             Free: {capacity.freeHours.toFixed(2)}h ({capacity.freeHoursPercentage}%)
           </h5>
         </div>
       </div>
     );
   };
-
+  
   const renderEventContent = (eventInfo) => {
     const jobId = eventInfo.event.extendedProps.jobId;
     const jobStatus = eventInfo.event.extendedProps.jobStatus.toLowerCase().replace(' ', '-');
