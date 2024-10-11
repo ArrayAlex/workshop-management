@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -10,10 +10,15 @@ import Sidebar from './Sidebar';
 import BookingModal from './BookingModal';
 import './Calendar.css';
 
+const WORK_DAY_START = '07:00:00';
+const WORK_DAY_END = '18:00:00';
+const WORKING_HOURS = 11; // Calculated from 07:00 to 18:00
+
 const Calendar = () => {
   const [modalIsOpen, setIsOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [editedEvent, setEditedEvent] = useState(null);
+  const [capacityData, setCapacityData] = useState({});
   const [events, setEvents] = useState([
     { 
       id: '1', 
@@ -38,7 +43,6 @@ const Calendar = () => {
       extendedProps: { jobId: '1021' }
     },
   ]);
-
 
   const [technicians] = useState([
     { value: 'R2-D2', label: 'R2-D2' },
@@ -79,39 +83,70 @@ const Calendar = () => {
   };
 
   const handleSave = (updatedEvent) => {
-    const updatedEvents = events.map(event => 
+    setEvents(prevEvents => prevEvents.map(event => 
       event.id === updatedEvent.id ? { 
         ...event, 
         ...updatedEvent, 
         technicians: updatedEvent.technicians.map(tech => tech.value)
       } : event
-    );
-    setEvents(updatedEvents);
+    ));
     closeModal();
   };
 
-  const calculateCapacity = (date) => {
-    const hoursInDay = 8 * technicians.length;
-    const jobsToday = events.filter(event => new Date(event.start).toDateString() === new Date(date).toDateString());
-    const bookedHours = jobsToday.reduce((total, job) => total + (new Date(job.end) - new Date(job.start)) / (1000 * 60 * 60), 0);
-    const freeHours = hoursInDay - bookedHours;
-    const freeHoursPercentage = ((freeHours / hoursInDay) * 100).toFixed(1);
+  const calculateCapacity = useCallback((date) => {
+    const jobsToday = events.filter(event => 
+      new Date(event.start).toDateString() === new Date(date).toDateString()
+    );
 
-    return {
-      jobs: jobsToday.length,
-      freeHours,
-      freeHoursPercentage,
-    };
-  };
+    if (jobsToday.length === 0) {
+      return { jobs: 0, freeHours: WORKING_HOURS, freeHoursPercentage: '100.0' };
+    }
+    
+    const bookedHours = jobsToday.reduce((total, job) => {
+      const jobStart = new Date(job.start);
+      const jobEnd = new Date(job.end);
+      const jobDuration = (jobEnd - jobStart) / (1000 * 60 * 60);
+      return total + jobDuration; // Remove multiplication by technician count
+    }, 0);
+
+    const freeHours = Math.max(0, WORKING_HOURS - bookedHours);
+    const freeHoursPercentage = ((freeHours / WORKING_HOURS) * 100).toFixed(1);
+
+    return { jobs: jobsToday.length, freeHours, freeHoursPercentage };
+  }, [events]);
+
+  const updateCapacityData = useCallback(() => {
+    if (!calendarRef.current) return;
+    const calendarApi = calendarRef.current.getApi();
+    const currentView = calendarApi.view;
+    const viewStart = currentView.activeStart;
+    const viewEnd = currentView.activeEnd;
+
+    const newCapacityData = {};
+    for (let date = new Date(viewStart); date < viewEnd; date.setDate(date.getDate() + 1)) {
+      const dateStr = date.toISOString().split('T')[0];
+      newCapacityData[dateStr] = calculateCapacity(new Date(date));
+    }
+
+    setCapacityData(newCapacityData);
+  }, [calculateCapacity]);
+
+  useEffect(() => {
+    updateCapacityData();
+  }, [events, updateCapacityData]);
 
   const renderDayHeaderContent = (arg) => {
-    const { jobs, freeHours, freeHoursPercentage } = calculateCapacity(arg.date);
+    const dateStr = arg.date.toISOString().split('T')[0];
+    const capacity = capacityData[dateStr] || { jobs: 0, freeHours: WORKING_HOURS, freeHoursPercentage: '100.0' };
+
     return (
       <div>
         <h2 style={{ fontSize: '14px', margin: '0' }}>{arg.text}</h2>
         <div className="capacity-info">
-          <h4 style={{ fontSize: '12px', margin: '0' }}>Jobs: {jobs}</h4>
-          <h5 style={{ fontSize: '10px', margin: '0' }}>Free: {freeHours.toFixed(2)}h ({freeHoursPercentage}%)</h5>
+          <h4 style={{ fontSize: '12px', margin: '0' }}>Jobs: {capacity.jobs}</h4>
+          <h5 style={{ fontSize: '10px', margin: '0' }}>
+            Free: {capacity.freeHours.toFixed(2)}h ({capacity.freeHoursPercentage}%)
+          </h5>
         </div>
       </div>
     );
@@ -160,6 +195,18 @@ const Calendar = () => {
     return colors[colorIndex];
   };
 
+  const handleEventChange = (changeInfo) => {
+    setEvents(prevEvents => prevEvents.map(event =>
+      event.id === changeInfo.event.id
+        ? {
+            ...event,
+            start: changeInfo.event.start,
+            end: changeInfo.event.end,
+          }
+        : event
+    ));
+  };
+
   return (
     <div className="flex flex-col h-screen bg-white-100">
       <Navbar />
@@ -183,9 +230,11 @@ const Calendar = () => {
             events={events}
             dateClick={handleDateClick}
             eventClick={handleEventClick}
-            slotMinTime="07:00:00"
-            slotMaxTime="18:00:00"
-            scrollTime="07:00:00"
+            eventChange={handleEventChange}
+            datesSet={updateCapacityData}
+            slotMinTime={WORK_DAY_START}
+            slotMaxTime={WORK_DAY_END}
+            scrollTime={WORK_DAY_START}
             height="auto"
             dayMaxEvents={true}
             dayHeaderContent={renderDayHeaderContent}
