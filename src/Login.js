@@ -32,6 +32,7 @@ const Login = ({ setIsAuthenticated }) => {
             }
     
         } catch (err) {
+            
             setError('Invalid email or password');
             console.error(err);
         }
