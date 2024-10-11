@@ -16,24 +16,61 @@ const WORK_DAY_START = '07:00:00';
 const WORK_DAY_END = '18:00:00';
 const WORKING_HOURS = 11; // Calculated from 07:00 to 18:00
 
-const EventHoverDialog = ({ event, position, onMouseEnter }) => {
+const EventHoverDialog = ({ event, position, onMouseEnter, onMouseLeave }) => {
+  const dialogRef = useRef(null);
+  const [dialogDimensions, setDialogDimensions] = useState({ width: 0, height: 0 });
+  const [finalPosition, setFinalPosition] = useState(position);
+
+  useEffect(() => {
+    if (dialogRef.current) {
+      const { offsetWidth, offsetHeight } = dialogRef.current;
+      setDialogDimensions({ width: offsetWidth, height: offsetHeight });
+    }
+  }, [event]); // Recalculate when the event changes
+
+  useEffect(() => {
+    if (dialogDimensions.width && dialogDimensions.height) {
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+
+      let newX = position.x;
+      let newY = position.y;
+
+      // Flip horizontally if too close to the right edge
+      if (position.x + dialogDimensions.width > windowWidth) {
+        newX = position.x - dialogDimensions.width - 20; // 20px offset from cursor
+      }
+
+      // Flip vertically if too close to the bottom edge
+      if (position.y + dialogDimensions.height > windowHeight) {
+        newY = position.y - dialogDimensions.height - 20; // 20px offset from cursor
+      }
+
+      setFinalPosition({ x: newX, y: newY });
+    }
+  }, [position, dialogDimensions]);
+
   if (!event) return null;
 
   return (
     <div 
+      ref={dialogRef}
       className="event-hover-dialog" 
       style={{ 
         position: 'fixed', 
-        top: position.y, 
-        left: position.x,
+        top: finalPosition.y,
+        left: finalPosition.x,
         zIndex: 1000,
         backgroundColor: 'white',
         border: '1px solid #ddd',
         borderRadius: '4px',
         padding: '8px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+        minWidth: '200px', // Set a minimum width to prevent squeezing
+        maxWidth: '300px', // Set a maximum width for consistency
       }}
       onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <h3>{event.title}</h3>
       <p>Job ID: {event.extendedProps.jobId}</p>
@@ -111,13 +148,14 @@ const Calendar = () => {
 
   const [hoverEvent, setHoverEvent] = useState(null);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
-  const [isOverDialog, setIsOverDialog] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
+  const hoverTimeoutRef = useRef(null);
 
   const handleMouseMove = useCallback((e) => {
-    if (hoverEvent) {
+    if (isHovering && hoverEvent) {
       setHoverPosition({ x: e.clientX + 10, y: e.clientY + 10 });
     }
-  }, [hoverEvent]);
+  }, [isHovering, hoverEvent]);
 
   const calendarRef = useRef(null);
 
@@ -148,6 +186,10 @@ const Calendar = () => {
   );
 
   const handleEventMouseEnter = useCallback((mouseEnterInfo) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    setIsHovering(true);
     setHoverEvent(mouseEnterInfo.event);
     setHoverPosition({
       x: mouseEnterInfo.jsEvent.clientX + 10,
@@ -156,42 +198,50 @@ const Calendar = () => {
   }, []);
 
   const handleEventMouseLeave = useCallback(() => {
-    // We'll handle closing in a separate effect
-  }, []); 
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    hoverTimeoutRef.current = setTimeout(() => {
+      setIsHovering(false);
+      setHoverEvent(null);
+    }, 100); // Small delay to allow moving to the dialog
+  }, []);
 
 
   const handleDialogMouseEnter = useCallback(() => {
-    setIsOverDialog(true);
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    setIsHovering(true);
   }, []);
 
-  useEffect(() => {
-    const handleGlobalMouseMove = (e) => {
-      handleMouseMove(e);
-
-      // Check if the mouse is over a calendar event
-      const eventElement = e.target.closest('.fc-event');
-      if (!eventElement && !isOverDialog) {
-        setHoverEvent(null);
-      }
-    };
-
-    document.addEventListener('mousemove', handleGlobalMouseMove);
-
-    return () => {
-      document.removeEventListener('mousemove', handleGlobalMouseMove);
-    };
-  }, [handleMouseMove, isOverDialog]);
-
-  useEffect(() => {
-    const handleMouseLeave = () => {
+  const handleDialogMouseLeave = useCallback(() => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    hoverTimeoutRef.current = setTimeout(() => {
+      setIsHovering(false);
       setHoverEvent(null);
-      setIsOverDialog(false);
-    };
+    }, 100);
+  }, []);
 
-    document.addEventListener('mouseleave', handleMouseLeave);
+
+  
+  useEffect(() => {
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('resize', handleMouseMove); // Re-position on window resize
 
     return () => {
-      document.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('resize', handleMouseMove);
+    };
+  }, [handleMouseMove]);
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -358,7 +408,7 @@ const Calendar = () => {
     return (
       <div 
         className={`event-container job-${jobStatus} ${isShort ? 'short-event' : ''}`}
-        onMouseEnter={(e) => handleEventMouseEnter({ event, jsEvent: e })}
+        onMouseEnter={(e) => handleEventMouseEnter({ event: eventInfo.event, jsEvent: e })}
         onMouseLeave={handleEventMouseLeave}
       >
         <div className="event-header">
@@ -445,11 +495,12 @@ const Calendar = () => {
             eventMouseEnter={handleEventMouseEnter}
             eventMouseLeave={handleEventMouseLeave}
           />
-          {hoverEvent && (
+          {isHovering && hoverEvent && (
         <EventHoverDialog 
           event={hoverEvent} 
           position={hoverPosition} 
           onMouseEnter={handleDialogMouseEnter}
+          onMouseLeave={handleDialogMouseLeave}
         />
       )}
         </div>

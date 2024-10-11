@@ -1,6 +1,9 @@
+// src/components/Navbar.js
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import './Navbar.css'
+import SearchComponent from './SearchComponent';
+import './Navbar.css';
+
 const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -9,7 +12,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-blue-800 text-white shadow-md p-2"> {/* Reduced padding */}
+    <nav className="bg-blue-800 text-white shadow-md p-2">
       <div className="flex items-center justify-between">
         {/* Sidebar Toggle Button */}
         <button className="mr-4">
@@ -27,11 +30,7 @@ const Navbar = () => {
         {/* Logo and Search Field */}
         <div className="flex items-center flex-grow">
           <span className="text-xl font-bold mr-4">Hoist</span>
-          <input
-            type="text"
-            placeholder="Search..."
-            className="p-1 rounded bg-gray-200 text-black w-48" // Reduced padding
-          />
+          <SearchComponent />
         </div>
 
         {/* Profile Icon */}
