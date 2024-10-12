@@ -1,0 +1,152 @@
+/* Modal styling */
+.ReactModal__Overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .ReactModal__Content {
+    position: relative;
+    background-color: white;
+    border-radius: 0.5rem;
+    outline: none;
+    padding: 0;
+    max-width: 80vw;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Ensure the modal content doesn't extend beyond its container */
+  .ReactModal__Content > div {
+    max-width: 100%;
+    max-height: 100%;
+  }
+  
+  /* Form styling */
+  .form-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #4a5568;
+  }
+  
+  /* Button styling */
+  .btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .btn-primary {
+    background-color: #4299e1;
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background-color: #3182ce;
+  }
+  
+  .btn-secondary {
+    background-color: #cbd5e0;
+    color: #4a5568;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #a0aec0;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .ReactModal__Content {
+      max-width: 95vw;
+    }
+  }
+  
+  /* Select component styling */
+  #technicians-container {
+    position: relative;
+    z-index: 3;
+  }
+  
+  #technicians-select {
+    z-index: 3;
+  }
+  
+  #technicians-container .select__menu {
+    z-index: 9999;
+    position: absolute;
+  }
+  
+  #bottom-nav {
+    z-index: 0 !important;
+    position: relative;
+  }
+  
+  .select__menu-portal {
+    z-index: 9999;
+  }
+  
+  .select__menu-list {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f7fafc;
+  }
+  
+  .select__menu-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .select__menu-list::-webkit-scrollbar-track {
+    background: #f7fafc;
+  }
+  
+  .select__menu-list::-webkit-scrollbar-thumb {
+    background-color: #cbd5e0;
+    border-radius: 3px;
+  }
+  
+  /* Ensure the dropdown options are not too tall */
+  .select__option {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+  
+  /* Additional styles for JobModal if needed */
+  .job-modal-header {
+    background-color: #4299e1;
+    color: white;
+    padding: 1rem;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+  }
+  
+  .job-modal-body {
+    padding: 1rem;
+  }
+  
+  .job-modal-footer {
+    background-color: #f7fafc;
+    padding: 1rem;
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+    display: flex;
+    justify-content: flex-end;
+  }
