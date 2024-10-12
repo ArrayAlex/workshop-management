@@ -5,9 +5,9 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import momentPlugin from '@fullcalendar/moment';
-import Navbar from './Navbar';
-import Sidebar from './Sidebar';
-import BookingModal from './BookingModal';
+import Navbar from '../Navbar/Navbar';
+import Sidebar from '../Sidebar/Sidebar';
+import BookingModal from '../BookingModal/BookingModal';
 import './Calendar.css';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, List } from 'lucide-react';
 import { debounce } from 'lodash';
@@ -92,30 +92,30 @@ const Calendar = () => {
     { 
       id: '1', 
       title: 'Job 1020 - Princess Leia', 
-      start: new Date('2024-10-10T08:00:00'), 
-      end: new Date('2024-10-10T09:00:00'), 
+      start: new Date('2024-10-17T08:00:00'), 
+      end: new Date('2024-10-17T09:00:00'), 
       technicians: ['R2-D2', 'Luke'], 
       description: 'Escape pod installation', 
       jobStatus: 'Booked', 
-      pickup: new Date('2024-10-10T17:00:00'),
+      pickup: new Date('2024-16-10T17:00:00'),
       extendedProps: { jobId: '1020' }
     },
     { 
       id: '2', 
       title: 'Job 1021 - Han Solo', 
-      start: new Date('2024-10-11T09:00:00'), 
-      end: new Date('2024-10-11T10:00:00'), 
+      start: new Date('2024-10-14T09:00:00'), 
+      end: new Date('2024-10-14T10:00:00'), 
       technicians: ['Chewbacca'], 
       description: 'Falcon repairs', 
       jobStatus: 'In Progress', 
-      pickup: new Date('2024-10-11T18:00:00'),
+      pickup: new Date('2024-17-11T18:00:00'),
       extendedProps: { jobId: '1023' }
     },
     { 
       id: '5', 
       title: 'Job 1021 - Han Solo', 
-      start: new Date('2024-10-12T09:00:00'), 
-      end: new Date('2024-10-12T10:00:00'), 
+      start: new Date('2024-10-15T09:00:00'), 
+      end: new Date('2024-10-15T10:00:00'), 
       technicians: ['Peter'], 
       description: 'Engine Swap', 
       jobStatus: 'Completed', 
@@ -125,8 +125,8 @@ const Calendar = () => {
     { 
       id: '4', 
       title: 'Job 1021 - Han Solo', 
-      start: new Date('2024-10-09T09:00:00'), 
-      end: new Date('2024-10-09T10:00:00'), 
+      start: new Date('2024-10-15T09:00:00'), 
+      end: new Date('2024-10-15T10:00:00'), 
       technicians: ['Peter'], 
       description: 'Wheel Alignment', 
       jobStatus: 'Cancelled', 
@@ -136,12 +136,12 @@ const Calendar = () => {
     { 
       id: '6', 
       title: 'Job 1021 - Han Solo', 
-      start: new Date('2024-10-11T09:00:00'), 
-      end: new Date('2024-10-11T10:00:00'), 
+      start: new Date('2024-10-16T09:00:00'), 
+      end: new Date('2024-10-16T10:00:00'), 
       technicians: ['Chewbacca'], 
       description: 'Falcon repairs', 
       jobStatus: 'In Progress', 
-      pickup: new Date('2024-10-11T18:00:00'),
+      pickup: new Date('2024-10-16T18:00:00'),
       extendedProps: { jobId: '1025' }
     },
   ]);

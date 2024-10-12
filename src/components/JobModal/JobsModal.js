@@ -4,11 +4,11 @@ import DatePicker from 'react-datepicker';
 import Select from 'react-select';
 import "react-datepicker/dist/react-datepicker.css";
 import './JobModal.css';
-import axiosInstance from '../api/axiosInstance';
+import axiosInstance from '../../api/axiosInstance';
 
 Modal.setAppElement('#root');
 
-const JobModal = ({ isOpen, onClose, job, onSave, technicians, vehicles }) => {
+const JobModal = ({ isOpen, onClose, onRequestClose, job, onSave, technicians, vehicles }) => {
     const [localJob, setLocalJob] = useState({
         Customer: null,
         Vehicle: null,
@@ -18,29 +18,29 @@ const JobModal = ({ isOpen, onClose, job, onSave, technicians, vehicles }) => {
         pickupDate: null,
     });
 
-    const [customers, setCustomers] = useState([]); // Add state for customers
+    const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (job) {
             setLoading(true);
-            // Initialize localJob with job details
             setLocalJob(prev => ({
                 ...prev,
-                JobId: job.JobId,
+                JobId: job.jobId || job.JobId,
                 Description: job.Description || '',
                 Notes: job.Notes || '',
                 startDate: job.startDate ? new Date(job.startDate) : null,
                 endDate: job.endDate ? new Date(job.endDate) : null,
                 pickupDate: job.pickupDate ? new Date(job.pickupDate) : null,
+                Customer: job.Customer || { label: job.customerName, value: job.customerId },
+                Vehicle: job.Vehicle || { label: `${job.vehicleMake} ${job.vehicleModel}`, value: job.vehicleId },
+                Technician: job.Technician || { label: job.assignedEmployees.join(', '), value: job.technicianId },
             }));
-            // Fetch details including customer, vehicle, and technician
             fetchDetails(job);
         }
     }, [job]);
 
     useEffect(() => {
-        // Fetch all customers when the modal opens
         const fetchCustomers = async () => {
             try {
                 const response = await axiosInstance.get('/customer/customers');
@@ -48,7 +48,7 @@ const JobModal = ({ isOpen, onClose, job, onSave, technicians, vehicles }) => {
                     label: `${customer.firstName} ${customer.lastName}`,
                     value: customer.id,
                 }));
-                setCustomers(customerOptions); // Set the fetched customer options
+                setCustomers(customerOptions);
             } catch (error) {
                 console.error("Error fetching customers:", error);
             }
@@ -59,25 +59,24 @@ const JobModal = ({ isOpen, onClose, job, onSave, technicians, vehicles }) => {
 
     const fetchDetails = async (job) => {
         try {
-            const [customerResponse, vehicleResponse, technicianResponse] = await Promise.all([
-                axiosInstance.get(`/customer/customers/${job.customerId}`),
-                axiosInstance.get(`vehicle/${job.vehicleId}`),
-                axiosInstance.get(`technician/${job.technicianId}`),
-            ]);
-    
-            const customer = customerResponse.data;
-            const vehicle = vehicleResponse.data;
-            const technician = technicianResponse.data;
-    
-            const fullName = `${customer.firstName} ${customer.lastName}`;
-    
-            // Update localJob with fetched details
-            setLocalJob(prev => ({
-                ...prev,
-                Customer: { label: fullName, value: customer.id },
-                Vehicle: { label: vehicle.model, value: vehicle.id },
-                Technician: { label: technician.name, value: technician.id },
-            }));
+            if (!job.Customer || !job.Vehicle || !job.Technician) {
+                const [customerResponse, vehicleResponse, technicianResponse] = await Promise.all([
+                    axiosInstance.get(`/customer/customers/${job.customerId}`),
+                    axiosInstance.get(`vehicle/${job.vehicleId}`),
+                    axiosInstance.get(`technician/${job.technicianId}`),
+                ]);
+        
+                const customer = customerResponse.data;
+                const vehicle = vehicleResponse.data;
+                const technician = technicianResponse.data;
+        
+                setLocalJob(prev => ({
+                    ...prev,
+                    Customer: { label: `${customer.firstName} ${customer.lastName}`, value: customer.id },
+                    Vehicle: { label: vehicle.model, value: vehicle.id },
+                    Technician: { label: technician.name, value: technician.id },
+                }));
+            }
         } catch (error) {
             console.error("Error fetching job details:", error);
         } finally {
@@ -100,7 +99,12 @@ const JobModal = ({ isOpen, onClose, job, onSave, technicians, vehicles }) => {
 
     const handleSave = () => {
         onSave(localJob);
-        onClose();
+        handleClose();
+    };
+
+    const handleClose = () => {
+        if (onClose) onClose();
+        if (onRequestClose) onRequestClose();
     };
 
     if (loading) return null;
@@ -163,14 +167,14 @@ const JobModal = ({ isOpen, onClose, job, onSave, technicians, vehicles }) => {
     return (
         <Modal
             isOpen={isOpen}
-            onRequestClose={onClose}
+            onRequestClose={handleClose}
             contentLabel="Job Details"
             style={customStyles}
         >
             <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl">
                 <div className="bg-blue-600 text-white px-6 py-4 flex justify-between items-center">
                     <h2 className="text-2xl font-bold">Job {localJob.JobId}</h2>
-                    <button onClick={onClose} className="text-white hover:text-gray-200">
+                    <button onClick={handleClose} className="text-white hover:text-gray-200">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -275,7 +279,7 @@ const JobModal = ({ isOpen, onClose, job, onSave, technicians, vehicles }) => {
                         Save
                     </button>
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400"
                     >
                         Cancel

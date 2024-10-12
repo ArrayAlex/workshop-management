@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { useQuery } from 'react-query';
 import { debounce } from 'lodash';
-import axiosInstance from '../api/axiosInstance';
-import JobModal from './JobsModal'; // Make sure the path is correct
-import CustomerModal from './CustomerModal'; // Make sure the path is correct
-import VehicleModal from './VehicleModal'; // Make sure the path is correct
+import axiosInstance from '../../api/axiosInstance';
+import JobModal from '../JobModal/JobsModal'; // Make sure the path is correct
+import CustomerModal from '../CustomerModal/CustomerModal'; // Make sure the path is correct
+import VehicleModal from '../VehicleModal/VehicleModal'; // Make sure the path is correct
 
 const searchApis = {
   customers: (query) =>

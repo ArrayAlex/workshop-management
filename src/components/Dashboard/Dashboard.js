@@ -1,6 +1,6 @@
 import React from 'react';
-import Navbar from './Navbar'; // Import Navbar
-import Sidebar from './Sidebar'; // Import Sidebar
+import Navbar from './Navbar/Navbar'; // Import Navbar
+import Sidebar from './Sidebar/Sidebar'; // Import Sidebar
 
 
 const Dashboard = () => {

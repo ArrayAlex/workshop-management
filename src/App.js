@@ -2,11 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import VehicleForm from './VehicleForm'; 
+import Vehicles from './components/Vehicles/Vehicles';
 import Login from './Login';
-import JobBoard from './JobBoard';
-import Dashboard from './components/Dashboard'; 
-import Calendar from './components/Calendar'; 
+import JobBoard from './components/JobBoard/JobBoard';
+import Dashboard from './components/Dashboard/Dashboard'; 
+import Calendar from './components/Calender/Calendar'; 
 
 import { checkAuth } from './utils/auth';
 
@@ -18,7 +18,7 @@ const PrivateRoute = ({ component: Component, isAuthenticated }) => {
 };
 
 const App = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false); // Start with false for testing
+    const [isAuthenticated, setIsAuthenticated] = useState(true); // Start with false for testing
 
     useEffect(() => {
       const verifyAuth = async () => {
@@ -41,7 +41,7 @@ const App = () => {
                 <Routes>
                     <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
                     <Route path="/dashboard" element={<PrivateRoute component={Dashboard} isAuthenticated={isAuthenticated} />} />
-                    <Route path="/vehicles" element={<PrivateRoute component={VehicleForm} isAuthenticated={isAuthenticated} />} />
+                    <Route path="/vehicles" element={<PrivateRoute component={Vehicles} isAuthenticated={isAuthenticated} />} />
                     <Route path="/jobs" element={<PrivateRoute component={JobBoard} isAuthenticated={isAuthenticated} />} />
                     <Route path="/cal" element={<PrivateRoute component={Calendar} isAuthenticated={isAuthenticated} />} />
                     <Route path="/" element={<Navigate to="/login" />} />
