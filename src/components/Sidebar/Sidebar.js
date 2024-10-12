@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTachometerAlt, faClipboardList, faCar, faUsers, faCalendarAlt, faChartBar, faCog } from '@fortawesome/free-solid-svg-icons';
+import { faTachometerAlt, faClipboardList, faUsers, faCalendarAlt, faChartBar, faCog } from '@fortawesome/free-solid-svg-icons';
 
 const Sidebar = () => {
   return (

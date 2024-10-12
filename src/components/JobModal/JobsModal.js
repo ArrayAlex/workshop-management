@@ -21,6 +21,8 @@ const JobModal = ({ isOpen, onClose, onRequestClose, job, onSave, technicians, v
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const isValidDate = (date) => date instanceof Date && !isNaN(date);
+
     useEffect(() => {
         if (job) {
             setLoading(true);
@@ -29,9 +31,9 @@ const JobModal = ({ isOpen, onClose, onRequestClose, job, onSave, technicians, v
                 JobId: job.jobId || job.JobId,
                 Description: job.Description || '',
                 Notes: job.Notes || '',
-                startDate: job.startDate ? new Date(job.startDate) : null,
-                endDate: job.endDate ? new Date(job.endDate) : null,
-                pickupDate: job.pickupDate ? new Date(job.pickupDate) : null,
+                startDate: isValidDate(new Date(job.startDate)) ? new Date(job.startDate) : null,
+                endDate: isValidDate(new Date(job.endDate)) ? new Date(job.endDate) : null,
+                pickupDate: isValidDate(new Date(job.pickupDate)) ? new Date(job.pickupDate) : null,
                 Customer: job.Customer || { label: job.customerName, value: job.customerId },
                 Vehicle: job.Vehicle || { label: `${job.vehicleMake} ${job.vehicleModel}`, value: job.vehicleId },
                 Technician: job.Technician || { label: job.assignedEmployees.join(', '), value: job.technicianId },

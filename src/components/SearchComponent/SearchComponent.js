@@ -49,6 +49,7 @@ const SearchComponent = ({ onResultSelect, technicians, customers, vehicles }) =
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
 
+  // eslint-disable-next-line
   const debouncedSearch = useCallback(
     debounce((term) => setSearchTerm(term), 300),
     []

@@ -10,7 +10,6 @@ import Sidebar from '../Sidebar/Sidebar';
 import BookingModal from '../BookingModal/BookingModal';
 import './Calendar.css';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, List } from 'lucide-react';
-import { debounce } from 'lodash';
 
 const WORK_DAY_START = '07:00:00';
 const WORK_DAY_END = '18:00:00';
@@ -85,7 +84,7 @@ const EventHoverDialog = ({ event, position, onMouseEnter, onMouseLeave }) => {
 
 const Calendar = () => {
   const [modalIsOpen, setIsOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  //const [selectedEvent, setSelectedEvent] = useState(null);
   const [editedEvent, setEditedEvent] = useState(null);
   const [capacityData, setCapacityData] = useState({});
   const [events, setEvents] = useState([
@@ -97,7 +96,7 @@ const Calendar = () => {
       technicians: ['R2-D2', 'Luke'], 
       description: 'Escape pod installation', 
       jobStatus: 'Booked', 
-      pickup: new Date('2024-16-10T17:00:00'),
+      pickup: new Date('2024-10-10T17:00:00'),
       extendedProps: { jobId: '1020' }
     },
     { 
@@ -108,7 +107,7 @@ const Calendar = () => {
       technicians: ['Chewbacca'], 
       description: 'Falcon repairs', 
       jobStatus: 'In Progress', 
-      pickup: new Date('2024-17-11T18:00:00'),
+      pickup: new Date('2024-10-14T18:00:00'),
       extendedProps: { jobId: '1023' }
     },
     { 
@@ -177,13 +176,6 @@ const Calendar = () => {
     { value: 'Stewie', label: 'Stewie' },
   ]);
 
-  const debouncedSetHoverEvent = useCallback(
-    debounce((event, position) => {
-      setHoverEvent(event);
-      setHoverPosition(position);
-    }, 100),
-    []
-  );
 
   const handleEventMouseEnter = useCallback((mouseEnterInfo) => {
     if (hoverTimeoutRef.current) {
@@ -246,14 +238,15 @@ const Calendar = () => {
   }, []);
 
   const openModal = (eventInfo) => {
-    setSelectedEvent(eventInfo.event);
+    const event = eventInfo.event;
     setEditedEvent({
-      ...eventInfo.event.extendedProps,
-      id: eventInfo.event.id,
-      title: eventInfo.event.title,
-      start: eventInfo.event.start,
-      end: eventInfo.event.end,
-      technicians: eventInfo.event.extendedProps.technicians.map(tech => ({ value: tech, label: tech })),
+      ...event.extendedProps,
+      id: event.id,
+      title: event.title,
+      start: event.start ? new Date(event.start) : null,
+      end: event.end ? new Date(event.end) : null,
+      pickup: event.extendedProps.pickup ? new Date(event.extendedProps.pickup) : null,
+      technicians: event.extendedProps.technicians.map(tech => ({ value: tech, label: tech })),
     });
     setIsOpen(true);
   };
