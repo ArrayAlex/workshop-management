@@ -106,7 +106,7 @@ const Calendar = () => {
       end: new Date('2024-10-14T10:00:00'), 
       technicians: ['Chewbacca'], 
       description: 'Falcon repairs', 
-      jobStatus: 'In Progress', 
+      jobStatus: 'In Progress',  
       pickup: new Date('2024-10-14T18:00:00'),
       extendedProps: { jobId: '1023' }
     },
