@@ -8,7 +8,8 @@ import JobBoard from './components/JobBoard/JobBoard';
 import Dashboard from './components/Dashboard/Dashboard'; 
 import Calendar from './components/Calender/Calendar'; 
 import InvoiceManager from './components/InvoiceManager/InvoiceManager';
-
+import Settings from './components/Settings/Settings'; 
+import Setup from './components/Setup/Setup'; 
 import { checkAuth } from './utils/auth';
 
 // Create a client
@@ -45,6 +46,8 @@ const App = () => {
                     <Route path="/vehicles" element={<PrivateRoute component={Vehicles} isAuthenticated={isAuthenticated} />} />
                     <Route path="/jobs" element={<PrivateRoute component={JobBoard} isAuthenticated={isAuthenticated} />} />
                     <Route path="/invoice" element={<PrivateRoute component={InvoiceManager} isAuthenticated={isAuthenticated} />} />
+                    <Route path="/settings" element={<PrivateRoute component={Settings} isAuthenticated={isAuthenticated} />} />
+                    <Route path="/setup" element={<PrivateRoute component={Setup} isAuthenticated={isAuthenticated} />} />
                     <Route path="/cal" element={<PrivateRoute component={Calendar} isAuthenticated={isAuthenticated} />} />
                     <Route path="/" element={<Navigate to="/login" />} />
                 </Routes>

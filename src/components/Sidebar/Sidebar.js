@@ -58,6 +58,12 @@ const Sidebar = () => {
             Settings
           </Link>
         </li>
+        <li>
+          <Link to="/setup" className="flex items-center block hover:bg-gray-200 p-2 rounded">
+            <FontAwesomeIcon icon={faCog} className="h-5 w-5 mr-2 text-gray-700" />
+            Setup
+          </Link>
+        </li>
       </ul>
     </aside>
   );
