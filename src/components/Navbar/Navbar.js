@@ -1,17 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import SearchComponent from '../SearchComponent/SearchComponent';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUser } from '@fortawesome/free-solid-svg-icons'; // For profile icon
 import './Navbar.css';
 
 const Navbar = ({ toggleSidebar }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
-    <nav className="bg-blue-800 text-white shadow-md p-2">
+    <nav id="navbar" className="text-white shadow-md p-2">
       <div className="flex items-center justify-between">
         {/* Sidebar Toggle Button */}
         <button className="mr-4" onClick={toggleSidebar}>
@@ -32,21 +48,14 @@ const Navbar = ({ toggleSidebar }) => {
         </div>
 
         {/* Profile Icon */}
-        <div className="relative">
+        <div className="relative" ref={dropdownRef}>
           <button
             className="focus:outline-none"
-            onClick={toggleDropdown}
+            onClick={toggleDropdown}  
           >
             {/* Profile Photo Style Icon */}
-            <div className="w-8 h-8 rounded-full overflow-hidden border-gray-200 pt-2">
-              <svg
-                className="w-full h-full"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14c3.866 0 7 1.343 7 3v1H5v-1c0-1.657 3.134-3 7-3zM12 12c-2.485 0-4.5-2.015-4.5-4.5S9.515 3 12 3s4.5 2.015 4.5 4.5S14.485 12 12 12z" />
-              </svg>
+            <div className="w-8 h-8 overflow-hidden border-gray-200 pt-2">
+              <FontAwesomeIcon icon={faUser} size="lg" className="text-white pr-10" />
             </div>
           </button>
           {/* Dropdown Menu for Profile Info */}
@@ -59,7 +68,7 @@ const Navbar = ({ toggleSidebar }) => {
               <ul>
                 <li className="hover:bg-gray-200 p-2">
                   <Link to="/settings" className="flex items-center block">
-                    Settings
+                    Logout
                   </Link>
                 </li>
               </ul>

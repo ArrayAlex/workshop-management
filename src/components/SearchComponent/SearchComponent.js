@@ -163,9 +163,9 @@ const SearchComponent = ({ onResultSelect, technicians, customers, vehicles }) =
     <div className="relative">  
       <input
         type="text"
-        placeholder="Search..."
+        placeholder="Search Workshop..."
         onChange={handleInputChange}
-        className="p-2 rounded bg-gray-200 text-black w-48"
+        className="p-2 rounded-sm bg-gray-100 text-black w-50 h-9"
       />
       {isDropdownVisible && searchTerm && (
         <div className="absolute mt-1 w-64 bg-white rounded shadow-lg z-10 text-gray-800">
