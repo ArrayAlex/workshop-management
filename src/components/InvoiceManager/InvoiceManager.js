@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import InvoiceModal from '../InvoiceModal/InvoiceModal';
+import InvoiceDetail from '../InvoiceDetail/InvoiceDetail'; // Import the new component
 import Navbar from '../Navbar/Navbar';
 import Sidebar from '../Sidebar/Sidebar';
 import { Table, TableHead, TableBody, TableRow, TableCell, TableSortLabel } from '@mui/material';
@@ -12,6 +13,7 @@ const InvoiceManager = () => {
     const [invoices, setInvoices] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDetailOpen, setIsDetailOpen] = useState(false); // State for invoice detail
     const [selectedInvoice, setSelectedInvoice] = useState(null);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' });
 
@@ -56,15 +58,23 @@ const InvoiceManager = () => {
         setIsModalOpen(false);
     };
 
+    const openDetail = (invoice) => {
+        setSelectedInvoice(invoice);
+        setIsDetailOpen(true);
+    };
+
+    const closeDetail = () => {
+        setSelectedInvoice(null);
+        setIsDetailOpen(false);
+    };
+
     const handleSaveInvoice = (newInvoice) => {
         setInvoices(prevInvoices => {
             if (selectedInvoice) {
-                // Update existing invoice
                 return prevInvoices.map(inv => 
                     inv.id === newInvoice.id ? newInvoice : inv
                 );
             } else {
-                // Add new invoice
                 return [...prevInvoices, newInvoice];
             }
         });
@@ -147,6 +157,12 @@ const InvoiceManager = () => {
                                     <TableCell>${invoice.total.toFixed(2)}</TableCell>
                                     <TableCell>
                                         <button
+                                            onClick={() => openDetail(invoice)} // Add View button
+                                            className="text-blue-500 hover:text-blue-700 mr-2"
+                                        >
+                                            View
+                                        </button>
+                                        <button
                                             onClick={() => openModal(invoice)}
                                             className="text-blue-500 hover:text-blue-700 mr-2"
                                         >
@@ -179,42 +195,37 @@ const InvoiceManager = () => {
                     onSave={handleSaveInvoice}
                 />
             )}
+            {isDetailOpen && selectedInvoice && ( // Show invoice detail modal
+                <InvoiceDetail
+                    invoice={selectedInvoice}
+                    onClose={closeDetail}
+                />
+            )}
         </div>
     );
 };
 
-// Fake invoice data
+// Fake invoice data (same as before)
 const fakeInvoices = [
     {
         id: 'INV-001',
-        customerName: 'Acme Corp',
-        date: '2023-05-15',
+        customerName: 'John Doe',
+        date: '2024-10-01',
+        total: 250.0,
         items: [
-            { description: 'Web Development Services', amount: 2500 },
-            { description: 'Hosting (1 year)', amount: 200 },
-            { description: 'Tyre, replacement', amount: 200 },
+            { description: 'Service A', amount: 100.0 },
+            { description: 'Service B', amount: 150.0 },
         ],
-        total: 2700,
     },
     {
         id: 'INV-002',
-        customerName: 'TechStart Inc',
-        date: '2023-05-18',
+        customerName: 'Jane Smith',
+        date: '2024-10-05',
+        total: 450.0,
         items: [
-            { description: 'App Development', amount: 5000 },
-            { description: 'Maintenance (3 months)', amount: 600 },
+            { description: 'Service C', amount: 200.0 },
+            { description: 'Service D', amount: 250.0 },
         ],
-        total: 5600,
-    },
-    {
-        id: 'INV-003',
-        customerName: 'Global Solutions',
-        date: '2023-06-01',
-        items: [
-            { description: 'Consulting', amount: 3000 },
-            { description: 'Training', amount: 1500 },
-        ],
-        total: 4500,
     },
 ];
 
