@@ -1,10 +1,9 @@
-// src/components/Navbar.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import SearchComponent from '../SearchComponent/SearchComponent';
 import './Navbar.css';
 
-const Navbar = () => {
+const Navbar = ({ toggleSidebar }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const toggleDropdown = () => {
@@ -15,13 +14,12 @@ const Navbar = () => {
     <nav className="bg-blue-800 text-white shadow-md p-2">
       <div className="flex items-center justify-between">
         {/* Sidebar Toggle Button */}
-        <button className="mr-4">
+        <button className="mr-4" onClick={toggleSidebar}>
           <svg
             className="w-6 h-6 text-white"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
-            onClick={() => console.log("Toggle Sidebar")}
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
           </svg>
@@ -60,14 +58,10 @@ const Navbar = () => {
               </div>
               <ul>
                 <li className="hover:bg-gray-200 p-2">
-                  {/* Link to Settings Page */}
                   <Link to="/settings" className="flex items-center block">
                     Settings
                   </Link>
                 </li>
-                {/* <li className="hover:bg-gray-200 p-2">
-                  <Link to="/account">Account Info</Link>
-                </li> */}
               </ul>
             </div>
           )}

@@ -457,16 +457,12 @@ const Calendar = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-white-100">
-      <Helmet>
+
+        <div className="flex-1 p-5 relative overflow-hidden">
+        <Helmet>
             <title>Diary | Hoist</title>
             <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
         </Helmet>
-      <Navbar />
-      <div className="flex flex-1">
-        <Sidebar />
-        <div className="flex-1 p-5 relative overflow-hidden">
-          
           <CustomToolbar calendarRef={calendarRef} />
           <FullCalendar
             ref={calendarRef}
@@ -502,8 +498,7 @@ const Calendar = () => {
           onMouseLeave={handleDialogMouseLeave}
         />
       )}
-        </div>
-      </div>
+
 
       <BookingModal
         isOpen={modalIsOpen}

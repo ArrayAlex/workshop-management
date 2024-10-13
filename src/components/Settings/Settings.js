@@ -41,20 +41,12 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <Helmet>
+
+        <main className="flex-1 p-6 bg-gray-100 overflow-y-auto">
+        <Helmet>
             <title>Settings | Hoist</title>
             <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
         </Helmet>
-      {/* Navbar */}
-      <Navbar />
-
-      <div className="flex flex-1">
-        {/* Sidebar */}
-        <Sidebar />
-
-        {/* Main Content */}
-        <main className="flex-1 p-6 bg-gray-100 overflow-y-auto">
           <h1 className="text-3xl font-bold mb-6">User Settings</h1>
           
           {message && <CustomAlert message={message} />}
@@ -147,8 +139,7 @@ const SettingsPage = () => {
             </button>
           </div>
         </main>
-      </div>
-    </div>
+
   );
 };
 

@@ -52,15 +52,12 @@ const CustomersPage = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <Helmet>
+    
+        <main className="flex-1 overflow-y-auto bg-gray-100 p-6">
+        <Helmet>
             <title>Customers | Hoist</title>
             <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
         </Helmet>
-      <Navbar />
-      <div className="flex flex-1">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto bg-gray-100 p-6">
           <div className="container mx-auto">
             <h1 className="text-3xl font-bold mb-6">Customers</h1>
             
@@ -151,8 +148,7 @@ const CustomersPage = () => {
             />
           </div>
         </main>
-      </div>
-    </div>
+
   );
 };
 

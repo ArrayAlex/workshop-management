@@ -77,17 +77,14 @@ const Reports = () => {
   ];
 
   return (
-    <div className="flex flex-col h-screen">
+
+        <main className="flex-1 overflow-y-auto bg-gray-100 p-6">
         <Helmet>
             <title>Reports | Hoist</title>
             <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
         </Helmet>
-      <Navbar />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto bg-gray-100 p-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Workshop Reports</h1>
+            <h1 className="text-3xl font-bold">Reports</h1>
             <CSVLink 
               data={csvData}
               filename={"workshop_report.csv"}
@@ -200,8 +197,7 @@ const Reports = () => {
             </div>
           </div>
         </main>
-      </div>
-    </div>
+
   );
 };
 

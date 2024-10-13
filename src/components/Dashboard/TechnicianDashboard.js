@@ -40,17 +40,13 @@ const TechnicianDashboard = () => {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+        
+        <main className="flex-1 overflow-y-auto p-6">
+        
         <Helmet>
             <title>Dashboard | Hoist</title>
             <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
         </Helmet>
-
-      <Navbar />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto p-6">
-        
           <h1 className="text-3xl font-bold mb-6">Technician Dashboard</h1>
           
           {/* Summary Cards */}
@@ -191,8 +187,6 @@ const TechnicianDashboard = () => {
             </div>
           )}
         </main>
-      </div>
-    </div>
   );
 };
 

@@ -49,16 +49,13 @@ const SetupPage = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <Helmet>
+
+        <main className="flex-1 p-6 bg-gray-100 overflow-y-auto">
+        <Helmet>
         <title>Setup | Hoist</title>
         <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
       </Helmet>
-      <Navbar />
-      <div className="flex flex-1">
-        <Sidebar />
-        <main className="flex-1 p-6 bg-gray-100 overflow-y-auto">
-          <h1 className="text-3xl font-bold mb-6">Workshop Setup</h1>
+          <h1 className="text-3xl font-bold mb-6">Setup</h1>
 
           {message && <CustomAlert message={message} />}
 
@@ -95,8 +92,7 @@ const SetupPage = () => {
             </button>
           </div>
         </main>
-      </div>
-    </div>
+
   );
 };
 
