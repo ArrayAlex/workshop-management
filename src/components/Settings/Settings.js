@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { User, Mail, Lock, Palette, Camera } from 'lucide-react';
 import Navbar from '../Navbar/Navbar'; // Import Navbar
 import Sidebar from '../Sidebar/Sidebar'; // Import Sidebar
+import { Helmet } from 'react-helmet';
 
 const CustomAlert = ({ message }) => (
   <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
@@ -41,6 +42,10 @@ const SettingsPage = () => {
 
   return (
     <div className="flex flex-col h-screen">
+      <Helmet>
+            <title>Settings | Hoist</title>
+            <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
+        </Helmet>
       {/* Navbar */}
       <Navbar />
 

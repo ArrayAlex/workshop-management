@@ -3,6 +3,7 @@ import { Search, Plus, Edit, Trash2 } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
 import Sidebar from '../Sidebar/Sidebar';
 import CustomerModal from '../CustomerModal/CustomerModal';
+import { Helmet } from 'react-helmet';
 
 const CustomersPage = () => {
   const [customers, setCustomers] = useState([]);
@@ -52,6 +53,10 @@ const CustomersPage = () => {
 
   return (
     <div className="flex flex-col h-screen">
+      <Helmet>
+            <title>Customers | Hoist</title>
+            <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
+        </Helmet>
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />

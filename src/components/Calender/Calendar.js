@@ -10,6 +10,8 @@ import Sidebar from '../Sidebar/Sidebar';
 import BookingModal from '../BookingModal/BookingModal';
 import './Calendar.css';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, List } from 'lucide-react';
+import { Helmet } from 'react-helmet';
+
 
 const WORK_DAY_START = '07:00:00';
 const WORK_DAY_END = '18:00:00';
@@ -456,6 +458,10 @@ const Calendar = () => {
 
   return (
     <div className="flex flex-col h-screen bg-white-100">
+      <Helmet>
+            <title>Diary | Hoist</title>
+            <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
+        </Helmet>
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />

@@ -6,6 +6,7 @@ import InvoicingSettings from './InvoicingSettings/InvoicingSettings';
 import AccountsSettings from './AccountsSettings/AccountsSettings';
 import IntegrationsSettings from './IntegrationsSettings/IntegrationsSettings';
 import MiscSettings from './MiscSettings/MiscSettings';
+import { Helmet } from 'react-helmet';
 
 const CustomAlert = ({ message }) => (
   <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
@@ -41,6 +42,10 @@ const SetupPage = () => {
 
   return (
     <div className="flex flex-col h-screen">
+      <Helmet>
+            <title>Setup | Hoist</title>
+            <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
+        </Helmet>
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />

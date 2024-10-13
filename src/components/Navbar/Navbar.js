@@ -40,7 +40,7 @@ const Navbar = () => {
             onClick={toggleDropdown}
           >
             {/* Profile Photo Style Icon */}
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
+            <div className="w-8 h-8 rounded-full overflow-hidden border-gray-200 pt-2">
               <svg
                 className="w-full h-full"
                 fill="none"
@@ -59,8 +59,15 @@ const Navbar = () => {
                 <span>Position: Technician</span>
               </div>
               <ul>
-                <li className="hover:bg-gray-200 p-2"><Link to="/settings">Settings</Link></li>
-                <li className="hover:bg-gray-200 p-2"><Link to="/account">Account Info</Link></li>
+                <li className="hover:bg-gray-200 p-2">
+                  {/* Link to Settings Page */}
+                  <Link to="/settings" className="flex items-center block">
+                    Settings
+                  </Link>
+                </li>
+                {/* <li className="hover:bg-gray-200 p-2">
+                  <Link to="/account">Account Info</Link>
+                </li> */}
               </ul>
             </div>
           )}

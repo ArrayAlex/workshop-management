@@ -3,7 +3,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import Navbar from '../Navbar/Navbar';
 import Sidebar from '../Sidebar/Sidebar';
 import JobModal from '../JobModal/JobsModal';
-
+import { Helmet } from 'react-helmet';
 const initialJobs = {
   'to-do': [
     {
@@ -297,6 +297,10 @@ const JobBoard = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
+      <Helmet>
+            <title>Job Board | Hoist</title>
+            <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
+        </Helmet>
       <Navbar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />

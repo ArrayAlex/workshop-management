@@ -8,7 +8,7 @@ import { Table, TableHead, TableBody, TableRow, TableCell, TableSortLabel } from
 import { Search, Edit, FileDownload } from '@mui/icons-material';
 import './InvoiceManager.css';
 import InvoicePDF from '../InvoicePDF/InvoicePDF';
-
+import { Helmet } from 'react-helmet';
 const InvoiceManager = () => {
     const [invoices, setInvoices] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -83,6 +83,10 @@ const InvoiceManager = () => {
 
     return (
         <div className="flex flex-col h-screen bg-gray-100">
+            <Helmet>
+            <title>Invoices | Hoist</title>
+            <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
+        </Helmet>
             <Navbar />
             <div className="flex flex-1 overflow-hidden">
                 <Sidebar />
