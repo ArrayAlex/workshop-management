@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building, MapPin, Phone, Mail, Globe, DollarSign, File, Image } from 'lucide-react';
+import { Building, MapPin, Phone, Mail, Globe, DollarSign, Image } from 'lucide-react';
 
 const GeneralSettings = () => {
   const [generalSettings, setGeneralSettings] = useState({

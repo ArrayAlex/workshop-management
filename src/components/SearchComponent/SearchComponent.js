@@ -193,11 +193,14 @@ const SearchComponent = ({ onResultSelect, technicians, customers, vehicles }) =
       )}
       {selectedCustomer && (
         <CustomerModal
-          isOpen={isCustomerModalOpen}
-          onRequestClose={() => setIsCustomerModalOpen(false)}
-          customerData={selectedCustomer}
-          onSave={handleCustomerSave}
-        />
+        isOpen={isCustomerModalOpen}
+        onClose={() => {
+          setIsCustomerModalOpen(false);
+          setSelectedCustomer(null);
+        }}
+        customer={selectedCustomer}
+        onSave={handleCustomerSave}
+      />
       )}
       {selectedVehicle && (
         <VehicleModal
