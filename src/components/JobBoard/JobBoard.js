@@ -416,7 +416,7 @@ const JobBoard = () => {
       <header className="bg-white shadow-sm p-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <h1 className="text-2xl font-bold text-gray-900">Job Board</h1>
+            <h1 className="text-2xl font-bold text-gray-500">Job Board</h1>
             <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 w-full md:w-auto">
               <div className="relative">
                 <input

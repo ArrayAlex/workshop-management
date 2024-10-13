@@ -32,7 +32,7 @@ const Navbar = ({ toggleSidebar }) => {
         {/* Sidebar Toggle Button */}
         <button className="mr-4" onClick={toggleSidebar}>
           <svg
-            className="w-6 h-6 text-white"
+            className="w-6 h-6 text-white hover:text-gray-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -55,7 +55,7 @@ const Navbar = ({ toggleSidebar }) => {
           >
             {/* Profile Photo Style Icon */}
             <div className="w-8 h-8 overflow-hidden border-gray-200 pt-2">
-              <FontAwesomeIcon icon={faUser} size="lg" className="text-white pr-10" />
+              <FontAwesomeIcon icon={faUser} size="lg" className="text-white pr-10 hover:text-gray-400" />
             </div>
           </button>
           {/* Dropdown Menu for Profile Info */}

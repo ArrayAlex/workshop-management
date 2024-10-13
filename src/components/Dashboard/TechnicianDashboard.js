@@ -47,7 +47,7 @@ const TechnicianDashboard = () => {
             <title>Dashboard | Hoist</title>
             <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
         </Helmet>
-          <h1 className="text-3xl font-bold mb-6">Technician Dashboard</h1>
+          <h1 className="text-2xl font-bold mb-4 text-gray-500">Technician Dashboard</h1>
           
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">

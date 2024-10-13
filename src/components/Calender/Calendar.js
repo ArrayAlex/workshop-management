@@ -288,15 +288,15 @@ const Calendar = () => {
     };
   
     return (
-      <div className="custom-toolbar bg-gray-800 text-white p-4 flex justify-between items-center">
+      <div className="custom-toolbar bg-white-400 text-gray-520 p-4 flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <button onClick={handlePrev} className="p-2 bg-gray-700 rounded hover:bg-gray-600">
+          <button onClick={handlePrev} className="p-2 bg-blue-500 text-white rounded-sm hover:bg-gray-600">
             <ChevronLeft size={24} />
           </button>
-          <button onClick={handleNext} className="p-2 bg-gray-700 rounded hover:bg-gray-600">
+          <button onClick={handleNext} className="p-2 bg-blue-500 rounded-sm text-white hover:bg-gray-600">
             <ChevronRight size={24} />
           </button>
-          <button onClick={handleToday} className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500">
+          <button onClick={handleToday} className="px-4 py-2 bg-blue-500 rounded-sm text-white hover:bg-gray-600">
             Today
           </button>
         </div>
@@ -304,15 +304,15 @@ const Calendar = () => {
           Workshop Calendar
         </div>
         <div className="flex items-center space-x-4">
-          <button onClick={() => handleViewChange('timeGridWeek')} className="flex items-center space-x-2 p-2 bg-gray-700 rounded hover:bg-gray-600">
+          <button onClick={() => handleViewChange('timeGridWeek')} className="flex items-center space-x-2 p-2 bg-blue-500 rounded-sm text-white hover:bg-gray-600">
             <CalendarIcon size={20} />
             <span>Week</span>
           </button>
-          <button onClick={() => handleViewChange('timeGridDay')} className="flex items-center space-x-2 p-2 bg-gray-700 rounded hover:bg-gray-600">
+          <button onClick={() => handleViewChange('timeGridDay')} className="flex items-center space-x-2 p-2 bg-blue-500 rounded-sm text-white hover:bg-gray-600">
             <Clock size={20} />
             <span>Day</span>
           </button>
-          <button onClick={() => handleViewChange('listWeek')} className="flex items-center space-x-2 p-2 bg-gray-700 rounded hover:bg-gray-600">
+          <button onClick={() => handleViewChange('listWeek')} className="flex items-center space-x-2 p-2 bg-blue-500 rounded-sm text-white hover:bg-gray-600">
             <List size={20} />
             <span>List</span>
           </button>
@@ -458,7 +458,7 @@ const Calendar = () => {
 
   return (
 
-        <div className="flex-1 p-5 relative overflow-hidden">
+        <div className="flex-1 relative overflow-hidden">
         <Helmet>
             <title>Diary | Hoist</title>
             <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
