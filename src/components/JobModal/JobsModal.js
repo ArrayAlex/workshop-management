@@ -34,9 +34,11 @@ const JobModal = ({ isOpen, onClose, onRequestClose, job, onSave, technicians, v
                 startDate: isValidDate(new Date(job.startDate)) ? new Date(job.startDate) : null,
                 endDate: isValidDate(new Date(job.endDate)) ? new Date(job.endDate) : null,
                 pickupDate: isValidDate(new Date(job.pickupDate)) ? new Date(job.pickupDate) : null,
-                Customer: job.Customer || { label: job.customerName, value: job.customerId },
-                Vehicle: job.Vehicle || { label: `${job.vehicleMake} ${job.vehicleModel}`, value: job.vehicleId },
-                Technician: job.Technician || { label: job.assignedEmployees.join(', '), value: job.technicianId },
+                Customer: job.Customer || (job.customerName ? { label: job.customerName, value: job.customerId } : null),
+                Vehicle: job.Vehicle || (job.vehicleMake && job.vehicleModel ? { label: `${job.vehicleMake} ${job.vehicleModel}`, value: job.vehicleId } : null),
+                Technician: job.Technician || (job.assignedEmployees && Array.isArray(job.assignedEmployees) 
+                    ? { label: job.assignedEmployees.join(', '), value: job.technicianId }
+                    : null),
             }));
             fetchDetails(job);
         }
@@ -61,23 +63,27 @@ const JobModal = ({ isOpen, onClose, onRequestClose, job, onSave, technicians, v
 
     const fetchDetails = async (job) => {
         try {
-            if (!job.Customer || !job.Vehicle || !job.Technician) {
-                const [customerResponse, vehicleResponse, technicianResponse] = await Promise.all([
-                    axiosInstance.get(`/customer/customers/${job.customerId}`),
-                    axiosInstance.get(`vehicle/${job.vehicleId}`),
-                    axiosInstance.get(`technician/${job.technicianId}`),
-                ]);
-        
-                const customer = customerResponse.data;
-                const vehicle = vehicleResponse.data;
-                const technician = technicianResponse.data;
-        
-                setLocalJob(prev => ({
-                    ...prev,
-                    Customer: { label: `${customer.firstName} ${customer.lastName}`, value: customer.id },
-                    Vehicle: { label: vehicle.model, value: vehicle.id },
-                    Technician: { label: technician.name, value: technician.id },
-                }));
+            const detailsToFetch = [];
+            if (!job.Customer) detailsToFetch.push(axiosInstance.get(`/customer/customers/${job.customerId}`));
+            if (!job.Vehicle) detailsToFetch.push(axiosInstance.get(`vehicle/${job.vehicleId}`));
+            if (!job.Technician) detailsToFetch.push(axiosInstance.get(`technician/${job.technicianId}`));
+
+            if (detailsToFetch.length > 0) {
+                const responses = await Promise.all(detailsToFetch);
+                const updatedJob = { ...localJob };
+
+                responses.forEach(response => {
+                    const data = response.data;
+                    if (data.firstName && data.lastName) {
+                        updatedJob.Customer = { label: `${data.firstName} ${data.lastName}`, value: data.id };
+                    } else if (data.model) {
+                        updatedJob.Vehicle = { label: data.model, value: data.id };
+                    } else if (data.name) {
+                        updatedJob.Technician = { label: data.name, value: data.id };
+                    }
+                });
+
+                setLocalJob(updatedJob);
             }
         } catch (error) {
             console.error("Error fetching job details:", error);
