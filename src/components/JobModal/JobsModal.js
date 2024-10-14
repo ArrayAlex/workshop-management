@@ -40,9 +40,11 @@ const JobModal = ({ isOpen, onClose, onRequestClose, job, onSave, technicians, v
                     ? { label: job.assignedEmployees.join(', '), value: job.technicianId }
                     : null),
             }));
+            
             fetchDetails(job);
         }
-    }, [job]);
+    // eslint-disable-next-line no-use-before-define
+    }, [fetchDetails, job]);
 
     useEffect(() => {
         const fetchCustomers = async () => {
@@ -61,6 +63,7 @@ const JobModal = ({ isOpen, onClose, onRequestClose, job, onSave, technicians, v
         fetchCustomers();
     }, []);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const fetchDetails = async (job) => {
         try {
             const detailsToFetch = [];

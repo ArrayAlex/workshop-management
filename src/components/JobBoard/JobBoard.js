@@ -1,7 +1,5 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import Navbar from '../Navbar/Navbar';
-import Sidebar from '../Sidebar/Sidebar';
 import JobModal from '../JobModal/JobsModal';
 import { Helmet } from 'react-helmet';
 const initialJobs = {

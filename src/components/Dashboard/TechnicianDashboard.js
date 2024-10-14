@@ -6,8 +6,6 @@ import {
 import { 
   Wrench, Clock, CheckCircle, AlertTriangle, 
 } from 'lucide-react';
-import Navbar from '../Navbar/Navbar';
-import Sidebar from '../Sidebar/Sidebar';
 import { Helmet } from 'react-helmet';
 
 const TechnicianDashboard = () => {

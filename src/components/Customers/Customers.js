@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit, Trash2 } from 'lucide-react';
-import Navbar from '../Navbar/Navbar';
-import Sidebar from '../Sidebar/Sidebar';
 import CustomerModal from '../CustomerModal/CustomerModal';
 import { Helmet } from 'react-helmet';
 

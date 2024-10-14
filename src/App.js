@@ -12,7 +12,7 @@ import CustomersPage from './components/Customers/Customers';
 import FloatingActionButton from './components/FloatingActionButton/FloatingActionButton';
 import { checkAuth } from './utils/auth';
 import TechnicianDashboard from './components/Dashboard/TechnicianDashboard';
-import OwnerDashboard from './components/Dashboard/OwnerDashboard';
+// import OwnerDashboard from './components/Dashboard/OwnerDashboard';
 import Navbar from './components/Navbar/Navbar';
 import Sidebar from './components/Sidebar/Sidebar';
 

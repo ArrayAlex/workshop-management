@@ -4,8 +4,6 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { CSVLink } from "react-csv";
-import Navbar from '../Navbar/Navbar';
-import Sidebar from '../Sidebar/Sidebar';
 import { Helmet } from 'react-helmet';
 
 const Reports = () => {

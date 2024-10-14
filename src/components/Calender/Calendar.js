@@ -5,160 +5,92 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import momentPlugin from '@fullcalendar/moment';
-import Navbar from '../Navbar/Navbar';
-import Sidebar from '../Sidebar/Sidebar';
 import BookingModal from '../BookingModal/BookingModal';
 import './Calendar.css';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, List } from 'lucide-react';
 import { Helmet } from 'react-helmet';
-
+import EventHoverDialog from './EventHoverDialog';
+import axiosInstance from '../../api/axiosInstance';
 
 const WORK_DAY_START = '07:00:00';
 const WORK_DAY_END = '18:00:00';
 const WORKING_HOURS = 11; // Calculated from 07:00 to 18:00
 
-const EventHoverDialog = ({ event, position, onMouseEnter, onMouseLeave }) => {
-  const dialogRef = useRef(null);
-  const [dialogDimensions, setDialogDimensions] = useState({ width: 0, height: 0 });
-  const [finalPosition, setFinalPosition] = useState(position);
-
-  useEffect(() => {
-    if (dialogRef.current) {
-      const { offsetWidth, offsetHeight } = dialogRef.current;
-      setDialogDimensions({ width: offsetWidth, height: offsetHeight });
-    }
-  }, [event]); // Recalculate when the event changes
-
-  useEffect(() => {
-    if (dialogDimensions.width && dialogDimensions.height) {
-      const windowWidth = window.innerWidth;
-      const windowHeight = window.innerHeight;
-
-      let newX = position.x;
-      let newY = position.y;
-
-      // Flip horizontally if too close to the right edge
-      if (position.x + dialogDimensions.width > windowWidth) {
-        newX = position.x - dialogDimensions.width - 20; // 20px offset from cursor
-      }
-
-      // Flip vertically if too close to the bottom edge
-      if (position.y + dialogDimensions.height > windowHeight) {
-        newY = position.y - dialogDimensions.height - 20; // 20px offset from cursor
-      }
-
-      setFinalPosition({ x: newX, y: newY });
-    }
-  }, [position, dialogDimensions]);
-
-  if (!event) return null;
-
-  return (
-    <div 
-      ref={dialogRef}
-      className="event-hover-dialog" 
-      style={{ 
-        position: 'fixed', 
-        top: finalPosition.y,
-        left: finalPosition.x,
-        zIndex: 1000,
-        backgroundColor: 'white',
-        border: '1px solid #ddd',
-        borderRadius: '4px',
-        padding: '8px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-        minWidth: '200px', // Set a minimum width to prevent squeezing
-        maxWidth: '300px', // Set a maximum width for consistency
-      }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-    >
-      <h3>{event.title}</h3>
-      <p>Job ID: {event.extendedProps.jobId}</p>
-      <p>Status: {event.extendedProps.jobStatus}</p>
-      <p>Time: {event.start.toLocaleTimeString()} - {event.end.toLocaleTimeString()}</p>
-      <p>Description: {event.extendedProps.description}</p>
-      <p>Technicians: {event.extendedProps.technicians.join(', ')}</p>
-      <p>Pickup: {event.extendedProps.pickup.toLocaleString()}</p>
-    </div>
-  );
-};
-
 const Calendar = () => {
   const [modalIsOpen, setIsOpen] = useState(false);
-  //const [selectedEvent, setSelectedEvent] = useState(null);
   const [editedEvent, setEditedEvent] = useState(null);
   const [capacityData, setCapacityData] = useState({});
-  const [events, setEvents] = useState([
-    { 
-      id: '1', 
-      title: 'Job 1020 - Princess Leia', 
-      start: new Date('2024-10-17T08:00:00'), 
-      end: new Date('2024-10-17T09:00:00'), 
-      technicians: ['R2-D2', 'Luke'], 
-      description: 'Escape pod installation', 
-      jobStatus: 'Booked', 
-      pickup: new Date('2024-10-10T17:00:00'),
-      extendedProps: { jobId: '1020' }
-    },
-    { 
-      id: '2', 
-      title: 'Job 1021 - Han Solo', 
-      start: new Date('2024-10-14T09:00:00'), 
-      end: new Date('2024-10-14T10:00:00'), 
-      technicians: ['Chewbacca'], 
-      description: 'Falcon repairs', 
-      jobStatus: 'In Progress',  
-      pickup: new Date('2024-10-14T18:00:00'),
-      extendedProps: { jobId: '1023' }
-    },
-    { 
-      id: '5', 
-      title: 'Job 1021 - Han Solo', 
-      start: new Date('2024-10-15T09:00:00'), 
-      end: new Date('2024-10-15T10:00:00'), 
-      technicians: ['Peter'], 
-      description: 'Engine Swap', 
-      jobStatus: 'Completed', 
-      pickup: new Date('2024-10-11T18:00:00'),
-      extendedProps: { jobId: '1022' }
-    },
-    { 
-      id: '4', 
-      title: 'Job 1021 - Han Solo', 
-      start: new Date('2024-10-15T09:00:00'), 
-      end: new Date('2024-10-15T10:00:00'), 
-      technicians: ['Peter'], 
-      description: 'Wheel Alignment', 
-      jobStatus: 'Cancelled', 
-      pickup: new Date('2024-10-11T18:00:00'),
-      extendedProps: { jobId: '1024' }
-    },
-    { 
-      id: '6', 
-      title: 'Job 1021 - Han Solo', 
-      start: new Date('2024-10-16T09:00:00'), 
-      end: new Date('2024-10-16T10:00:00'), 
-      technicians: ['Chewbacca'], 
-      description: 'Falcon repairs', 
-      jobStatus: 'In Progress', 
-      pickup: new Date('2024-10-16T18:00:00'),
-      extendedProps: { jobId: '1025' }
-    },
-  ]);
-
+  const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [hoverEvent, setHoverEvent] = useState(null);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const hoverTimeoutRef = useRef(null);
-
-  const handleMouseMove = useCallback((e) => {
-    if (isHovering && hoverEvent) {
-      setHoverPosition({ x: e.clientX + 10, y: e.clientY + 10 });
-    }
-  }, [isHovering, hoverEvent]);
-
   const calendarRef = useRef(null);
+  // const [events, setEvents] = useState([
+  //   { 
+  //     id: '1', 
+  //     title: 'Job 1020 - Princess Leia', 
+  //     start: new Date('2024-10-17T08:00:00'), 
+  //     end: new Date('2024-10-17T09:00:00'), 
+  //     technicians: ['R2-D2', 'Luke'], 
+  //     description: 'Escape pod installation', 
+  //     jobStatus: 'Booked', 
+  //     pickup: new Date('2024-10-10T17:00:00'),
+  //     extendedProps: { jobId: '1020' }
+  //   },
+  //   { 
+  //     id: '2', 
+  //     title: 'Job 1021 - Han Solo', 
+  //     start: new Date('2024-10-14T09:00:00'), 
+  //     end: new Date('2024-10-14T10:00:00'), 
+  //     technicians: ['Chewbacca'], 
+  //     description: 'Falcon repairs', 
+  //     jobStatus: 'In Progress',  
+  //     pickup: new Date('2024-10-14T18:00:00'),
+  //     extendedProps: { jobId: '1023' }
+  //   },
+  //   { 
+  //     id: '5', 
+  //     title: 'Job 1021 - Han Solo', 
+  //     start: new Date('2024-10-15T09:00:00'), 
+  //     end: new Date('2024-10-15T10:00:00'), 
+  //     technicians: ['Peter'], 
+  //     description: 'Engine Swap', 
+  //     jobStatus: 'Completed', 
+  //     pickup: new Date('2024-10-11T18:00:00'),
+  //     extendedProps: { jobId: '1022' }
+  //   },
+  //   { 
+  //     id: '4', 
+  //     title: 'Job 1021 - Han Solo', 
+  //     start: new Date('2024-10-15T09:00:00'), 
+  //     end: new Date('2024-10-15T10:00:00'), 
+  //     technicians: ['Peter'], 
+  //     description: 'Wheel Alignment', 
+  //     jobStatus: 'Cancelled', 
+  //     pickup: new Date('2024-10-11T18:00:00'),
+  //     extendedProps: { jobId: '1024' }
+  //   },
+  //   { 
+  //     id: '6', 
+  //     title: 'Job 1021 - Han Solo', 
+  //     start: new Date('2024-10-16T09:00:00'), 
+  //     end: new Date('2024-10-16T10:00:00'), 
+  //     technicians: ['Chewbacca'], 
+  //     description: 'Falcon repairs', 
+  //     jobStatus: 'In Progress', 
+  //     pickup: new Date('2024-10-16T18:00:00'),
+  //     extendedProps: { jobId: '1025' }
+  //   },
+  // ]);
+
+
+
+  
+
+
 
   const getCapacityColor = (freeHoursPercentage) => {
     const percentage = parseFloat(freeHoursPercentage);
@@ -166,6 +98,119 @@ const Calendar = () => {
     if (percentage < 40) return 'orange';
     return 'green';
   };
+
+
+
+  const calculateCapacity = useCallback((date) => {
+    const jobsToday = events.filter(event => 
+      new Date(event.start).toDateString() === new Date(date).toDateString()
+    );
+
+    if (jobsToday.length === 0) {
+      return { jobs: 0, freeHours: WORKING_HOURS, freeHoursPercentage: '100.0' };
+    }
+    
+    const bookedHours = jobsToday.reduce((total, job) => {
+      const jobStart = new Date(job.start);
+      const jobEnd = new Date(job.end);
+      const jobDuration = (jobEnd - jobStart) / (1000 * 60 * 60);
+      return total + jobDuration;
+    }, 0);
+
+    const freeHours = Math.max(0, WORKING_HOURS - bookedHours);
+    const freeHoursPercentage = ((freeHours / WORKING_HOURS) * 100).toFixed(1);
+
+    return { jobs: jobsToday.length, freeHours, freeHoursPercentage };
+  }, [events]);
+
+     
+
+  const updateCapacityData = useCallback(() => {
+    if (!calendarRef.current) return;
+    const calendarApi = calendarRef.current.getApi();
+    const currentView = calendarApi.view;
+    const viewStart = currentView.activeStart;
+    const viewEnd = currentView.activeEnd;
+
+    const newCapacityData = {};
+    for (let date = new Date(viewStart); date < viewEnd; date.setDate(date.getDate() + 1)) {
+      const dateStr = date.toISOString().split('T')[0];
+      newCapacityData[dateStr] = calculateCapacity(new Date(date));
+    }
+
+    setCapacityData(newCapacityData);
+  }, [calculateCapacity]);
+
+  const handleMouseMove = useCallback((e) => {
+    if (isHovering && hoverEvent) {
+      setHoverPosition({ x: e.clientX + 10, y: e.clientY + 10 });
+    }
+  }, [isHovering, hoverEvent]);
+  
+  const fetchAppointments = useCallback(async (start, end) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const startDate = start.toISOString();
+      const endDate = end.toISOString();
+
+      console.log(`Fetching appointments between ${startDate} and ${endDate}`);
+
+      const response = await axiosInstance.get('/Appointment/Appointments', {
+        params: {
+          startDate: startDate,
+          endDate: endDate
+        }
+      });
+      
+      console.log('Response data:', response.data);
+
+      const formattedEvents = response.data.map(booking => ({
+        id: booking.id,
+        title: `${booking.customer.name} - ${booking.vehicle.make} ${booking.vehicle.model}`,
+        start: new Date(booking.startTime),
+        end: new Date(booking.endTime),
+        notes: booking.notes || '',
+        backgroundColor: booking.bookingStatus?.color || '#6495ED',
+        borderColor: booking.bookingStatus?.color || '#6495ED',
+        textColor: '#ffffff',
+        extendedProps: {
+          bookingId: booking.id,
+          bookingStatus: booking.bookingStatus?.title || 'Unknown',
+          jobs: JSON.parse(booking.jobs || '[]'),
+          active: booking.active,
+          lastModified: booking.lastModified,
+          invoiceId: booking.invoiceID,
+          customer: booking.customer,
+          vehicle: booking.vehicle
+        }
+      }));
+
+      console.log('Fetched and formatted events:', formattedEvents);
+      setEvents(formattedEvents);
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+      setError("Failed to load bookings. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleDatesSet = useCallback((dateInfo) => {
+    const { start, end } = dateInfo;
+    fetchAppointments(start, end);
+    updateCapacityData();
+  }, [fetchAppointments, updateCapacityData]);
+
+  useEffect(() => {
+    // Initial fetch of appointments when component mounts
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      const start = calendarApi.view.activeStart;
+      const end = calendarApi.view.activeEnd;
+      fetchAppointments(start, end);
+    }
+  }, [fetchAppointments]);
 
   const [technicians] = useState([
     { value: 'R2-D2', label: 'R2-D2' },
@@ -242,13 +287,18 @@ const Calendar = () => {
   const openModal = (eventInfo) => {
     const event = eventInfo.event;
     setEditedEvent({
-      ...event.extendedProps,
       id: event.id,
       title: event.title,
-      start: event.start ? new Date(event.start) : null,
-      end: event.end ? new Date(event.end) : null,
-      pickup: event.extendedProps.pickup ? new Date(event.extendedProps.pickup) : null,
-      technicians: event.extendedProps.technicians.map(tech => ({ value: tech, label: tech })),
+      start_time: event.start,
+      end_time: event.end,
+      description: event.extendedProps.description || '',
+      notes: event.extendedProps.notes || '',
+      bookingStatus: event.extendedProps.bookingStatus,
+      customer: event.extendedProps.customer,
+      vehicle: event.extendedProps.vehicle,
+      jobs: event.extendedProps.jobs,
+      invoiceId: event.extendedProps.invoiceId,
+      technicians: event.extendedProps.technicians || [],
     });
     setIsOpen(true);
   };
@@ -259,11 +309,28 @@ const Calendar = () => {
   };
 
   const handleDateClick = (info) => {
-    alert(`Clicked on date: ${info.dateStr}`);
+    
   };
 
   const handleEventClick = (info) => {
     openModal(info);
+  };
+
+
+  const handleDateSelect = (selectInfo) => {
+    setEditedEvent({
+      start: selectInfo.start,
+      end: selectInfo.end,
+      allDay: selectInfo.allDay,
+      // Initialize other fields as needed
+      title: '',
+      technicians: [],
+      description: '',
+      jobStatus: 'Booked',
+      pickup: null,
+      extendedProps: { jobId: '' }
+    });
+    setIsOpen(true);
   };
 
   const CustomToolbar = ({ calendarRef }) => {
@@ -321,54 +388,32 @@ const Calendar = () => {
     );
   };
 
-  const handleSave = (updatedEvent) => {
-    setEvents(prevEvents => prevEvents.map(event => 
-      event.id === updatedEvent.id ? { 
-        ...event, 
-        ...updatedEvent, 
-        technicians: updatedEvent.technicians.map(tech => tech.value)
-      } : event
-    ));
+  const handleSave = async (updatedEvent) => {
+    try {
+      let response;
+      if (updatedEvent.id) {
+        // Update existing event
+        response = await axiosInstance.put('/Appointment/update', updatedEvent);
+      } else {
+        // Add new event
+        response = await axiosInstance.post('/Appointment/add', updatedEvent);
+      }
+
+      if (response.data === true) {
+        // Refresh the calendar data
+        const calendarApi = calendarRef.current.getApi();
+        fetchAppointments(calendarApi.view.activeStart, calendarApi.view.activeEnd);
+      } else {
+        throw new Error('Operation failed');
+      }
+    } catch (err) {
+      console.error('Error saving appointment:', err);
+      setError('Failed to save the appointment. Please try again.');
+    }
     closeModal();
   };
 
-  const calculateCapacity = useCallback((date) => {
-    const jobsToday = events.filter(event => 
-      new Date(event.start).toDateString() === new Date(date).toDateString()
-    );
-
-    if (jobsToday.length === 0) {
-      return { jobs: 0, freeHours: WORKING_HOURS, freeHoursPercentage: '100.0' };
-    }
-    
-    const bookedHours = jobsToday.reduce((total, job) => {
-      const jobStart = new Date(job.start);
-      const jobEnd = new Date(job.end);
-      const jobDuration = (jobEnd - jobStart) / (1000 * 60 * 60);
-      return total + jobDuration;
-    }, 0);
-
-    const freeHours = Math.max(0, WORKING_HOURS - bookedHours);
-    const freeHoursPercentage = ((freeHours / WORKING_HOURS) * 100).toFixed(1);
-
-    return { jobs: jobsToday.length, freeHours, freeHoursPercentage };
-  }, [events]);
-
-  const updateCapacityData = useCallback(() => {
-    if (!calendarRef.current) return;
-    const calendarApi = calendarRef.current.getApi();
-    const currentView = calendarApi.view;
-    const viewStart = currentView.activeStart;
-    const viewEnd = currentView.activeEnd;
-
-    const newCapacityData = {};
-    for (let date = new Date(viewStart); date < viewEnd; date.setDate(date.getDate() + 1)) {
-      const dateStr = date.toISOString().split('T')[0];
-      newCapacityData[dateStr] = calculateCapacity(new Date(date));
-    }
-
-    setCapacityData(newCapacityData);
-  }, [calculateCapacity]);
+ 
 
   useEffect(() => {
     updateCapacityData();
@@ -394,40 +439,46 @@ const Calendar = () => {
 
   const renderEventContent = (eventInfo) => {
     const { event } = eventInfo;
-    const jobId = event.extendedProps.jobId;
-    const jobStatus = event.extendedProps.jobStatus.toLowerCase().replace(' ', '-');
+    const bookingId = event.extendedProps.bookingId;
+    const bookingStatus = event.extendedProps.bookingStatus;
+    const jobs = event.extendedProps.jobs;
+    const customer = event.extendedProps.customer;
+    const vehicle = event.extendedProps.vehicle;
     
     const durationInMinutes = (event.end - event.start) / (1000 * 60);
     const isShort = durationInMinutes <= 30;
     
     return (
       <div 
-        className={`event-container job-${jobStatus} ${isShort ? 'short-event' : ''}`}
+        className={`event-container booking-${bookingStatus.toLowerCase().replace(' ', '-')} ${isShort ? 'short-event' : ''}`}
+        style={{ backgroundColor: event.backgroundColor }}
         onMouseEnter={(e) => handleEventMouseEnter({ event: eventInfo.event, jsEvent: e })}
         onMouseLeave={handleEventMouseLeave}
       >
         <div className="event-header">
-          <span className="event-id">#{jobId}</span>
+          <span className="event-id">#{bookingId}</span>
           {!isShort && <span className="event-time">{eventInfo.timeText}</span>}
         </div>
         {!isShort && (
           <div className="event-body">
             <div className="event-title">{event.title}</div>
-            <div className="technician-icons">
-              {event.extendedProps.technicians.map((tech, index) => {
-                const initials = tech.split(' ').map(name => name[0]).join('');
-                return (
+            <div className="event-customer">{customer.name} - {customer.phone}</div>
+            <div className="event-vehicle">{vehicle.make} {vehicle.model} ({vehicle.rego})</div>
+            <div className="event-status">{bookingStatus}</div>
+            {jobs && jobs.length > 0 && (
+              <div className="job-icons">
+                {jobs.map((jobId, index) => (
                   <span 
                     key={index} 
-                    className="technician-icon" 
-                    title={tech}
-                    style={{ backgroundColor: generateColor(initials) }}
+                    className="job-icon" 
+                    title={`Job ${jobId}`}
+                    style={{ backgroundColor: generateColor(jobId.toString()) }}
                   >
-                    {initials}
+                    {jobId}
                   </span>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -457,40 +508,41 @@ const Calendar = () => {
   };
 
   return (
-
-        <div className="flex-1 relative overflow-hidden">
-        <Helmet>
-            <title>Diary | Hoist</title>
-            <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
-        </Helmet>
-          <CustomToolbar calendarRef={calendarRef} />
-          <FullCalendar
-            ref={calendarRef}
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin, momentPlugin]}
-            initialView="timeGridWeek"
-            headerToolbar={false}
-            nowIndicator={true}
-            editable={true}
-            droppable={true}
-            selectable={true}
-            events={events}
-            dateClick={handleDateClick}
-            eventClick={handleEventClick}
-            eventChange={handleEventChange}
-            datesSet={updateCapacityData}
-            slotMinTime={WORK_DAY_START}
-            slotMaxTime={WORK_DAY_END}
-            scrollTime={WORK_DAY_START}
-            height="auto"
-            dayMaxEvents={true}
-            dayHeaderContent={renderDayHeaderContent}
-            eventContent={renderEventContent}
-            allDaySlot={false} 
-            
-            eventMouseEnter={handleEventMouseEnter}
-            eventMouseLeave={handleEventMouseLeave}
-          />
-          {isHovering && hoverEvent && (
+    <div className="flex-1 relative overflow-hidden">
+      <Helmet>
+        <title>Diary | Hoist</title>
+        <link rel="icon" href="https://img.icons8.com/emoji/48/sport-utility-vehicle.png" type="image/png" />
+      </Helmet>
+      <CustomToolbar calendarRef={calendarRef} />
+      {isLoading && <div className="loading-overlay">Loading...</div>}
+      {error && <div className="error-message">{error}</div>}
+      <FullCalendar
+        ref={calendarRef}
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin, momentPlugin]}
+        initialView="timeGridWeek"
+        headerToolbar={false}
+        nowIndicator={true}
+        editable={true}
+        droppable={true}
+        selectable={true}
+        events={events}
+        dateClick={handleDateClick}
+        eventClick={handleEventClick}
+        eventChange={handleEventChange}
+        datesSet={handleDatesSet}
+        slotMinTime={WORK_DAY_START}
+        slotMaxTime={WORK_DAY_END}
+        scrollTime={WORK_DAY_START}
+        height="auto"
+        dayMaxEvents={true}
+        dayHeaderContent={renderDayHeaderContent}
+        eventContent={renderEventContent}
+        allDaySlot={false} 
+        eventMouseEnter={handleEventMouseEnter}
+        eventMouseLeave={handleEventMouseLeave}
+        select={handleDateSelect}
+      />
+      {isHovering && hoverEvent && (
         <EventHoverDialog 
           event={hoverEvent} 
           position={hoverPosition} 
@@ -498,7 +550,6 @@ const Calendar = () => {
           onMouseLeave={handleDialogMouseLeave}
         />
       )}
-
 
       <BookingModal
         isOpen={modalIsOpen}

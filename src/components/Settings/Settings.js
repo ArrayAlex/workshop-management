@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, Palette, Camera } from 'lucide-react';
-import Navbar from '../Navbar/Navbar'; // Import Navbar
-import Sidebar from '../Sidebar/Sidebar'; // Import Sidebar
 import { Helmet } from 'react-helmet';
 
 const CustomAlert = ({ message }) => (

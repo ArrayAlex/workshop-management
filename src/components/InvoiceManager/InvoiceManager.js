@@ -2,8 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import InvoiceModal from '../InvoiceModal/InvoiceModal';
 import InvoiceDetail from '../InvoiceDetail/InvoiceDetail'; // Import the new component
-import Navbar from '../Navbar/Navbar';
-import Sidebar from '../Sidebar/Sidebar';
 import { Table, TableHead, TableBody, TableRow, TableCell, TableSortLabel } from '@mui/material';
 import { Search, Edit, FileDownload } from '@mui/icons-material';
 import './InvoiceManager.css';

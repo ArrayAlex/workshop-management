@@ -1,7 +1,5 @@
 // src/pages/SetupPage/SetupPage.js
 import React, { useState } from 'react';
-import Navbar from '../Navbar/Navbar';
-import Sidebar from '../Sidebar/Sidebar';
 import GeneralSettings from './GeneralSettings/GeneralSettings';
 import InvoicingSettings from './InvoicingSettings/InvoicingSettings';
 import AccountsSettings from './AccountsSettings/AccountsSettings';

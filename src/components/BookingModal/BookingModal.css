@@ -127,3 +127,20 @@
     padding-top: 4px;
     padding-bottom: 4px;
   }
+  .react-select-container .react-select__control {
+    border-radius: 0.125rem;
+    border-color: #d1d5db;
+  }
+  
+  .react-select-container .react-select__control:hover {
+    border-color: #9ca3af;
+  }
+  
+  .react-select-container .react-select__control--is-focused {
+    box-shadow: 0 0 0 1px #3b82f6;
+    border-color: #3b82f6;
+  }
+  
+  .react-select-container .react-select__menu {
+    border-radius: 0.125rem;
+  }
