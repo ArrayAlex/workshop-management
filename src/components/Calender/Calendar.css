@@ -56,12 +56,12 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
   
-  .event-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
-  }
+  /*.event-container {*/
+  /*  display: flex;*/
+  /*  flex-direction: column;*/
+  /*  height: 100%;*/
+  /*  overflow: hidden;*/
+  /*}*/
   
   .event-header {
     display: flex;
@@ -74,10 +74,12 @@
   
   .event-time {
     margin-right: 4px;
+    color: black !important;
   }
   
   .event-id {
-    font-size: 1.1em;
+    font-size: 1.4em;
+    color: black !important;
   }
   
   .event-body {
@@ -159,21 +161,21 @@
   }
   
   /* Custom classes for different job statuses */
-  .event-container.job-booked .event-header {
-    background-color: #28a745;
-  }
+  /*.event-container.job-booked .event-header {*/
+  /*  background-color: #28a745;*/
+  /*}*/
   
-  .event-container.job-in-progress .event-header {
-    background-color: #ffc107;
-  }
+  /*.event-container.job-in-progress .event-header {*/
+  /*  background-color: #ffc107;*/
+  /*}*/
   
-  .event-container.job-completed .event-header {
-    background-color: #17a2b8;
-  }
+  /*.event-container.job-completed .event-header {*/
+  /*  background-color: #17a2b8;*/
+  /*}*/
   
-  .event-container.job-cancelled .event-header {
-    background-color: #dc3545;
-  }
+  /*.event-container.job-cancelled .event-header {*/
+  /*  background-color: #dc3545;*/
+  /*}*/
   
   /* Responsive adjustments */
   @media (max-width: 768px) {
@@ -195,11 +197,11 @@
     opacity: 0.9;
   }
   
-  .event-container {
-    padding: 2px 4px;
-    overflow: hidden;
-    font-size: 0.8em;
-  }
+  /*.event-container {*/
+  /*  padding: 2px 4px;*/
+  /*  overflow: hidden;*/
+  /*  font-size: 0.8em;*/
+  /*}*/
   
   .event-header {
     display: flex;
@@ -265,7 +267,7 @@
   flex-direction: column;
   height: 100%;
   position: relative;
-  padding: 2px 4px;
+  /*padding: 2px 4px;*/
   overflow: visible;
   font-size: 0.8em;
 }
@@ -351,3 +353,94 @@
   margin: 4px 0;
 }
 
+/* Calendar styling */
+.fc {
+  font-family: 'Arial', sans-serif;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+}
+
+/* Event styling */
+.event-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  margin: 5px 0;
+  transition: all 0.2s ease;
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
+
+.event-id {
+  font-size: 0.9em;
+  color: #333;
+}
+
+.event-time {
+  font-size: 0.8em;
+  color: #666;
+}
+
+.event-body {
+  flex-grow: 1;
+  padding-top: 5px;
+}
+
+.event-status {
+  background-color: #007bff;
+  color: white;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  display: inline-block;
+  margin-bottom: 5px;
+
+}
+
+.customer-info {
+  font-size: 0.85em;
+  color: #444;
+}
+
+.customer-name {
+  font-weight: bold;
+}
+
+.customer-phone {
+  margin-left: 5px;
+  color: #626262;
+}
+
+.vehicle-info {
+  font-size: 0.85em;
+  color: #676767;
+}
+
+.vehicle-make,
+.vehicle-model,
+.vehicle-rego {
+  margin-right: 5px;
+}
+
+.job-icons {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 5px;
+}
+
+.job-icon {
+  background-color: #e9ecef;
+  color: #333;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 0.7em;
+  margin-right: 3px;
+}

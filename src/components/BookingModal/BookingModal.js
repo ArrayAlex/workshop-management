@@ -324,8 +324,8 @@ const BookingModal = ({ isOpen, onClose, editedEvent, onSave, technicians }) => 
                     <tbody className="bg-white divide-y divide-gray-200">
                       {jobs.map(job => (
                         <tr key={job.id}>
-                          <td className="px-6 py-4 whitespace-nowrap">{job.id}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">{job.description}</td>
+                          <td className="px-6 py-4 whitespace-nowrap">{job.jobId}</td>
+                          <td className="px-6 py-4 whitespace-nowrap">{job.notes}</td>
                           <td className="px-6 py-4 whitespace-nowrap">{job.status}</td>
                           <td className="px-6 py-4 whitespace-nowrap space-x-2">
                             <button onClick={() => handleUpdateJob(job.id, { status: 'In Progress' })} className="text-indigo-600 hover:text-indigo-900">Update</button>
