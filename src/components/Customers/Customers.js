@@ -129,6 +129,7 @@ const CustomersPage = () => {
                   {/* Loading Spinner */}
                   <div className="animate-spin border-t-4 border-blue-500 border-solid w-10 h-10 rounded-full"></div>
                 </div>
+
             ) : (
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
