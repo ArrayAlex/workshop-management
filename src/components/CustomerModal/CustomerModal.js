@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Phone, Briefcase, MapPin, FileText, MessageSquare, Activity, ShoppingCart, Package } from 'lucide-react';
+import axiosInstance from "../../api/axiosInstance";
 
 const CustomerModal = ({ isOpen, onClose, customer, onSave }) => {
-  const [currentCustomer, setCurrentCustomer] = useState(customer || {});
-  const [activeTab, setActiveTab] = useState('general');
+  // const [customer, setCustomer] = useState(customer || {});
+  const [formData, setFormData] = useState(customer || {});
+  const [activeTab, setActiveTab] = useState('general')
+  ;
+  useEffect(() => {
+    // Sync formData with the customer prop if it changes
+    setFormData(customer || {});
+  }, [customer]);
 
   useEffect(() => {
     const handleEsc = (event) => {
@@ -30,179 +37,210 @@ const CustomerModal = ({ isOpen, onClose, customer, onSave }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setCurrentCustomer({ ...currentCustomer, [name]: value });
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSave = () => {
-    onSave(currentCustomer);
-    onClose();
+    if (formData.id) {
+      // If formData has an id, update the customer
+      updateCustomer();
+    } else {
+      // If no id exists, create a new customer
+      createCustomer();
+    }
+    onSave(formData); // Pass the form data to the parent component
+    onClose(); // Close the modal
   };
+
+  const createCustomer = async () => {
+    try {
+      // Sending formData in the PUT request to create a new customer
+      const response = await axiosInstance.post('/customer/add', formData);
+      console.log('Customer created successfully:', response.data);
+    } catch (error) {
+      console.error('Error creating customer:', error);
+    }
+  };
+
+  const updateCustomer = async () => {
+    try {
+      // Sending formData in the POST request to update an existing customer
+      const response = await axiosInstance.put('/customer/update', formData);
+      console.log('Customer updated successfully:', response.data);
+    } catch (error) {
+      console.error('Error updating customer:', error);
+    }
+  };
+
 
   const renderTabContent = () => {
     switch (activeTab) {
       case 'general':
         return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">First Name</label>
+                  <input
+                      type="text"
+                      name="firstName"
+                      value={formData.firstName || ''}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                  <input
+                      type="text"
+                      name="lastName"
+                      value={formData.lastName || ''}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <label className="block text-sm font-medium text-gray-700">Phone</label>
                 <input
-                  type="text"
-                  name="name"
-                  value={currentCustomer.name || ''}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    type="tel"
+                    name="phone"
+                    value={formData.phone || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Sort Code</label>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
                 <input
-                  type="text"
-                  name="sortCode"
-                  value={currentCustomer.sortCode || ''}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    type="email"
+                    name="email"
+                    value={formData.email || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Postal Address</label>
+                <textarea
+                    name="postalAddress"
+                    value={formData.postalAddress || ''}
+                    onChange={handleInputChange}
+                    rows={1}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Mobile</label>
+                <input
+                    type="tel"
+                    name="mobile"
+                    value={formData.mobile || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Home Phone</label>
+                <input
+                    type="tel"
+                    name="homePhone"
+                    value={formData.homePhone || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Delivery Address</label>
+                <textarea
+                    name="deliveryAddress"
+                    value={formData.deliveryAddress || ''}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Web Address</label>
+                <input
+                    type="url"
+                    name="webAddress"
+                    value={formData.webAddress || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Contact</label>
+                <input
+                    type="text"
+                    name="contact"
+                    value={formData.contact || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Account Type</label>
+                <select
+                    name="accountType"
+                    value={formData.accountType || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                >
+                  <option value="Account">Account</option>
+                  <option value="Cash">Cash</option>
+                  <option value="ChargeTo">Charge To</option>
+                  <option value="AccountHeader">Account Header</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Account Application Approved</label>
+                <select
+                    name="accountApproved"
+                    value={formData.accountApproved || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                >
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">On Hold</label>
+                <select
+                    name="onHold"
+                    value={formData.onHold || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                >
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                  <option value="Never">Never</option>
+                  <option value="Always">Always</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">GST Rate</label>
+                <select
+                    name="gstRate"
+                    value={formData.gstRate || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                >
+                  <option value="">Please Select</option>
+                  <option value="Exempt (0%)">Exempt (0%)</option>
+                  <option value="Standard (15%)">Standard (15%)</option>
+                  <option value="Zero Rated (0%)">Zero Rated (0%)</option>
+                </select>
+              </div>
+              {/* Add more fields as needed */}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Phone</label>
-              <input
-                type="tel"
-                name="phone"
-                value={currentCustomer.phone || ''}
-                onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Postal Address</label>
-              <textarea
-                name="postalAddress"
-                value={currentCustomer.postalAddress || ''}
-                onChange={handleInputChange}
-                rows={3}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Mobile</label>
-              <input
-                type="tel"
-                name="mobile"
-                value={currentCustomer.mobile || ''}
-                onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Home Phone</label>
-              <input
-                type="tel"
-                name="homePhone"
-                value={currentCustomer.homePhone || ''}
-                onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={currentCustomer.email || ''}
-                onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Delivery Address</label>
-              <textarea
-                name="deliveryAddress"
-                value={currentCustomer.deliveryAddress || ''}
-                onChange={handleInputChange}
-                rows={3}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Web Address</label>
-              <input
-                type="url"
-                name="webAddress"
-                value={currentCustomer.webAddress || ''}
-                onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Contact</label>
-              <input
-                type="text"
-                name="contact"
-                value={currentCustomer.contact || ''}
-                onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Account Type</label>
-              <select
-                name="accountType"
-                value={currentCustomer.accountType || ''}
-                onChange={handleInputChange}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              >
-                <option value="Account">Account</option>
-                <option value="Cash">Cash</option>
-                <option value="ChargeTo">Charge To</option>
-                <option value="AccountHeader">Account Header</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Account Application Approved</label>
-              <select
-                name="accountApproved"
-                value={currentCustomer.accountApproved || ''}
-                onChange={handleInputChange}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              >
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">On Hold</label>
-              <select
-                name="onHold"
-                value={currentCustomer.onHold || ''}
-                onChange={handleInputChange}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              >
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
-                <option value="Never">Never</option>
-                <option value="Always">Always</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">GST Rate</label>
-              <select
-                name="gstRate"
-                value={currentCustomer.gstRate || ''}
-                onChange={handleInputChange}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              >
-                <option value="">Please Select</option>
-                <option value="Exempt (0%)">Exempt (0%)</option>
-                <option value="Standard (15%)">Standard (15%)</option>
-                <option value="Zero Rated (0%)">Zero Rated (0%)</option>
-              </select>
-            </div>
-            {/* Add more fields as needed */}
-          </div>
         );
-      // Add cases for other tabs
+        // Add cases for other tabs
       default:
         return <div>Content for {activeTab} tab</div>;
     }
@@ -211,17 +249,18 @@ const CustomerModal = ({ isOpen, onClose, customer, onSave }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" onClick={onClose}>
-      <div className="relative top-20 mx-auto p-5 border w-11/12 shadow-lg rounded-md bg-white" onClick={e => e.stopPropagation()}>
-        <div className="mt-3">
-          <div className="flex justify-between items-center pb-3">
+      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" onClick={onClose}>
+        <div className="relative top-20 mx-auto p-5 border w-11/12 shadow-lg rounded-md bg-white"
+             onClick={e => e.stopPropagation()}>
+          <div className="mt-3">
+            <div className="flex justify-between items-center pb-3">
             <h2 className="text-2xl font-bold">Customer Maintenance</h2>
             <button onClick={onClose} className="text-black close-modal">
               <X size={24} />
             </button>
           </div>
           <div className="my-2 text-gray-600">
-            <p>Created on 12-04-2021 @ 14:50 Sys ID: 9233</p>
+            <p>Created on 12-04-2021 @ 14:50 Customer ID: {customer.id}</p>
           </div>
           <div className="mt-4">
             <div className="flex space-x-4 mb-4 overflow-x-auto">
@@ -242,6 +281,8 @@ const CustomerModal = ({ isOpen, onClose, customer, onSave }) => {
             </div>
             <div className="mt-4 max-h-96 overflow-y-auto">
               {renderTabContent()}
+
+              {/*{console.log(customer.name)}*/}
             </div>
           </div>
           <div className="flex justify-end items-center mt-4">
