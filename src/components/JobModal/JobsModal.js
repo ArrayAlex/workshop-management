@@ -29,8 +29,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
 
     useEffect(() => {
         if (job) {
-            console.log('job.jobType ' + job.jobType );
-            console.log('job.jobStatus  ' + job.jobStatus  );
+
             setLocalJob({
                 jobId: job.jobId || null,
                 customerId: job.customerId || null,
@@ -44,8 +43,8 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                 createdBy: job.createdBy || null
             });
         } else {
-            console.log('job.jobType ' );
-            console.log('job.jobStatus  '  );
+            console.log('job.jobType ');
+            console.log('job.jobStatus  ');
             setLocalJob({
                 jobId: null,
                 customerId: null,
@@ -139,17 +138,14 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
     };
 
 
-
     const jobStatuses = JSON.parse(localStorage.getItem('jobStatuses'));
     const jobTypes = JSON.parse(localStorage.getItem('jobTypes'))
 
     const addJob = async (job) => {
         // Remove createdAt and updatedAt before sending to the API
-        const { createdAt, updatedAt, ...jobWithoutTimestamps } = job;
+        const {createdAt, updatedAt, ...jobWithoutTimestamps} = job;
 
-        console.log("Sending job data without timestamps:", jobWithoutTimestamps); // Log the job data being sent to the API
-
-
+        console.log("Sending job data without timestamps:", jobWithoutTimestamps);
 
         try {
             const response = await axiosInstance.post('/job/add', jobWithoutTimestamps, {
@@ -166,10 +162,10 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
             throw error;
         }
     };
-// Function to update an existing job
+
     const saveJob = async (job) => {
         // Remove createdAt and updatedAt before sending to the API
-        const { createdAt, updatedAt, ...jobWithoutTimestamps } = job;
+        const {createdAt, updatedAt, ...jobWithoutTimestamps} = job;
 
         try {
             const response = await axiosInstance.put('/job/update', jobWithoutTimestamps);  // Send updated job data to the backend
@@ -184,7 +180,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
     };
 
 
-// Example usage: Populate dropdown for job statuses
+
     const statusOptions = Array.isArray(jobStatuses)
         ? jobStatuses.map(status => ({
             value: status.id || null,
@@ -196,9 +192,9 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
             ),
             color: status.color
         }))
-        : [];  // Return an empty array if jobStatuses is not an array
+        : [];
 
-    // Add color for job type
+
     const typeOptions = Array.isArray(jobTypes)
         ? jobTypes.map(type => ({
             value: type.id || null,
@@ -237,8 +233,19 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
     };
 
     const handleSelectChange = (selectedOption, name) => {
-        setLocalJob(prev => ({...prev, [name]: selectedOption ? selectedOption.value : null}));
+        console.log('trying to select....');
+        if (selectedOption) {
+            console.log('Selected Value:', selectedOption?.value);
+            console.log('Selected Label:', selectedOption?.label);
+        }
+        console.log(name);
+
+        setLocalJob((prev) => ({
+            ...prev,
+            [name]: selectedOption ? selectedOption.value : null, // Only use the value
+        }));
     };
+
 
     const handleSave = () => {
         // Assuming you're either adding or updating a job here
@@ -286,7 +293,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                     <h2 className="text-2xl font-bold">Loading Job Details...</h2>
                 </div>
                 <div className="p-6 max-h-[calc(90vh-8rem)] overflow-y-auto">
-                    <LoadingSpinner />
+                    <LoadingSpinner/>
                 </div>
             </div>
         </Modal>
@@ -401,7 +408,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                             <div>
-                            <label className="form-label">Customer</label>
+                                <label className="form-label">Customer</label>
                                 <Select
                                     options={customers} // Customer options
                                     value={customers.find(customer => customer.value === localJob.customerId) || null} // Find and set selected value
@@ -410,7 +417,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                                 />
                             </div>
                             <div>
-                            <label className="form-label">Vehicle</label>
+                                <label className="form-label">Vehicle</label>
                                 <Select
                                     options={vehicles} // Vehicle options
                                     value={vehicles.find(vehicle => vehicle.value === localJob.vehicleId) || null} // Find and set selected value
@@ -434,7 +441,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                                 <label className="form-label">Technician</label>
                                 <Select
                                     options={technicians} // Vehicle options
-                                    value={technicians.find(technician => technician.value === localJob.technicianId) || null}
+                                    value={technicians.find(technician => technician.value == localJob.technicianId) || null}
                                     // Find and set selected value
                                     onChange={(option) => handleSelectChange(option, 'technicianId')} // Update vehicleId on change
                                     styles={selectStyles} // Apply custom styles
@@ -445,8 +452,9 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                                 <label className="form-label">Job Status</label>
                                 <Select
                                     options={statusOptions}
-                                    value={statusOptions.find(option => option.value === localJob.jobStatus) || null} // Ensure the selected option is set
-                                    onChange={(selectedOption) => handleSelectChange(selectedOption, 'jobStatus')} // Update jobStatus
+                                    value={statusOptions.find(option => option.value === localJob.jobStatus.id) || null}
+                                    onChange={(selectedOption) => handleSelectChange(selectedOption, 'jobStatus')}
+                                    styles={selectStyles}
                                     placeholder="Select Job Status"
                                 />
                             </div>
@@ -455,8 +463,9 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                                 <label className="form-label">Job Type</label>
                                 <Select
                                     options={typeOptions}
-                                    value={typeOptions.find(option => option.value === localJob.jobType) || null} // Ensure the selected option is set
-                                    onChange={(selectedOption) => handleSelectChange(selectedOption, 'jobType')} // Update jobType
+                                    value={typeOptions.find(option => option.value === localJob.jobType.id) || null}
+                                    onChange={(selectedOption) => handleSelectChange(selectedOption, 'jobType')}
+                                    styles={selectStyles}
                                     placeholder="Select Job Type"
                                 />
                             </div>

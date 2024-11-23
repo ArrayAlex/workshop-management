@@ -12,6 +12,9 @@ const labels = [
     {name: 'Called Customer', color: 'bg-blue-500'},
 ];
 
+
+/*const labels = JSON.parse(localStorage.getItem('jobStatuses'));*/
+
 const useClickOutside = (ref, callback) => {
     useEffect(() => {
         const handleClickOutside = (event) => {
