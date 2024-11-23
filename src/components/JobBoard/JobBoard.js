@@ -96,40 +96,46 @@ const JobBoard = () => {
 
     const handleDragEnd = useCallback(async (result) => {
         const { source, destination } = result;
-        if (!destination) return; // Don't do anything if dropped outside
-        console.log(result);
+        if (!destination) return;
+
         const sourceColumn = source.droppableId;
         const destColumn = destination.droppableId;
-
-        console.log(destColumn);
-        console.log(sourceColumn);
-
-        // Adjust jobBoardID based on the destination column
         const jobBoardIDMap = {
             'to-do': 0,
             'in-progress': 1,
             'completed': 2
         };
-
         const newJobBoardID = jobBoardIDMap[destColumn];
 
-        // Optimistically update state for the drag action
+
+
         setJobs(prevJobs => {
             const newJobs = { ...prevJobs };
             const sourceJobs = [...newJobs[sourceColumn]];
             const destJobs = destColumn === sourceColumn ? sourceJobs : [...newJobs[destColumn]];
 
-            // Get the job being moved
-            const [removed] = sourceJobs.splice(source.index, 1);
+            // Find the index of the job in the source column
+            const sourceIndex = sourceJobs.findIndex(option => option.jobId == result.draggableId);
+            if (sourceIndex === -1) {
+                console.error('Job not found in source column');
+                return prevJobs;
+            }
 
-            // Update jobBoardID
+
+
+            // Remove the job from the source array
+            const [removed] = sourceJobs.splice(sourceIndex, 1);
+
+            // Create updated job with new board ID
             const updatedJob = {
                 ...removed,
                 jobBoardID: newJobBoardID,
             };
 
+            // Insert the job at the destination
             destJobs.splice(destination.index, 0, updatedJob);
 
+            // Update both columns
             newJobs[sourceColumn] = sourceJobs;
             if (sourceColumn !== destColumn) {
                 newJobs[destColumn] = destJobs;
@@ -138,17 +144,40 @@ const JobBoard = () => {
             return newJobs;
         });
 
-        // Make the PUT request with just the integer value for jobBoardID
+        // Send the updated job status to the backend
         try {
             await axiosInstance.put(`/Job/jobboardid/${result.draggableId}`, newJobBoardID, {
                 headers: {
-                    'Content-Type': 'application/json' // Ensure this header is set
+                    'Content-Type': 'application/json'
                 }
             });
+
+            const response = await axiosInstance.get('/Job/jobs');
+            const fetchedJobs = response.data;
+            const categorizedJobs = fetchedJobs.reduce((acc, job) => {
+                switch (job.jobBoardID) {
+                    case 0:
+                        acc['to-do'].push(job);
+                        break;
+                    case 1:
+                        acc['in-progress'].push(job);
+                        break;
+                    case 2:
+                        acc['completed'].push(job);
+                        break;
+                    default:
+                        acc['to-do'].push(job);
+                }
+                return acc;
+            }, { 'to-do': [], 'in-progress': [], 'completed': [] });
+
+            setJobs(categorizedJobs);
         } catch (error) {
             console.error('Error updating job status:', error);
+            // Optionally, you might want to revert the UI state here if the backend update fails
         }
     }, []);
+
 
     const handleLabelClick = useCallback((e, jobId) => {
         e.stopPropagation();
@@ -242,16 +271,27 @@ const JobBoard = () => {
         return Object.entries(filteredJobs).reduce((acc, [columnName, columnJobs]) => {
             const sorted = [...columnJobs].sort((a, b) => {
                 switch (sortOption[columnName]) {
-                    case 'oldest':
-                        return new Date(a.createdAt) - new Date(b.createdAt);
                     case 'newest':
-                        return new Date(b.createdAt) - new Date(a.createdAt);
+                        // First compare by updatedAt dates
+                        const dateCompare = new Date(b.updatedAt) - new Date(a.updatedAt);
+                        // If dates are equal, sort by jobId (highest first)
+                        return dateCompare === 0 ? b.jobId - a.jobId : dateCompare;
+
+                    case 'oldest':
+                        const oldestDateCompare = new Date(a.updatedAt) - new Date(b.updatedAt);
+                        // If dates are equal, sort by jobId (highest first)
+                        return oldestDateCompare === 0 ? b.jobId - a.jobId : oldestDateCompare;
+
                     case 'highest':
                         return (b.invoiceAmount || 0) - (a.invoiceAmount || 0);
+
                     case 'lowest':
                         return (a.invoiceAmount || 0) - (b.invoiceAmount || 0);
+
                     default:
-                        return 0;
+                        // Default to newest first
+                        const defaultDateCompare = new Date(b.updatedAt) - new Date(a.updatedAt);
+                        return defaultDateCompare === 0 ? b.jobId - a.jobId : defaultDateCompare;
                 }
             });
             acc[columnName] = sorted;
