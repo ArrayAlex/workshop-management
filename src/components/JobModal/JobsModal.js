@@ -309,10 +309,12 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                                 <label className="form-label">Technician</label>
                                 <Select
                                     options={technicians} // Vehicle options
-                                    value={technicians.find(technician => technician.value === localJob.technicianId) || null} // Find and set selected value
+                                    value={technicians.find(technician => technician.value === localJob.technicianId) || null}
+                                    // Find and set selected value
                                     onChange={(option) => handleSelectChange(option, 'technicianId')} // Update vehicleId on change
                                     styles={selectStyles} // Apply custom styles
                                 />
+
                             </div>
                             {localJob.jobStatus && localJob.jobStatus.title && (
                                 <div>

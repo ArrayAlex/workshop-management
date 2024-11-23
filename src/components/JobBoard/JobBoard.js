@@ -330,6 +330,7 @@ const JobBoard = () => {
                     </div>
                 </div>
             </header>
+
             <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex-1 overflow-hidden bg-gray-100">
                     <div className="flex h-full">
