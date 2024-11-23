@@ -12,6 +12,10 @@ const labels = [
     {name: 'Called Customer', color: 'bg-blue-500'},
 ];
 
+const handleDragStart = (start) => {
+    console.log("Dragging started:");
+    console.log("Dragged jobId:", start.draggableId);
+};
 const useClickOutside = (ref, callback) => {
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -93,9 +97,12 @@ const JobBoard = () => {
     const handleDragEnd = useCallback(async (result) => {
         const { source, destination } = result;
         if (!destination) return; // Don't do anything if dropped outside
-
+        console.log(result);
         const sourceColumn = source.droppableId;
         const destColumn = destination.droppableId;
+
+        console.log(destColumn);
+        console.log(sourceColumn);
 
         // Adjust jobBoardID based on the destination column
         const jobBoardIDMap = {
@@ -331,7 +338,7 @@ const JobBoard = () => {
                 </div>
             </header>
 
-            <DragDropContext onDragEnd={handleDragEnd}>
+            <DragDropContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
             <div className="flex-1 overflow-hidden bg-gray-100">
                     <div className="flex h-full">
                         {Object.entries(sortedJobs).map(([columnName, columnJobs]) => (
@@ -359,6 +366,7 @@ const JobBoard = () => {
                                             </select>
                                         </div>
                                         <div className="flex-1 overflow-y-auto p-2 space-y-2">
+
                                             {columnJobs.map((job, index) => (
 
                                                 <Draggable key={job.jobId} draggableId={job.jobId.toString()} index={index}>

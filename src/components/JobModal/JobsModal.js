@@ -144,15 +144,22 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
     const jobTypes = JSON.parse(localStorage.getItem('jobTypes'))
 
     const addJob = async (job) => {
-        // Remove createdAt and updatedAt before sending to the API
-        const { createdAt, updatedAt, ...jobWithoutTimestamps } = job;
+        // Transform the job data before sending to API
+        const transformedJob = {
+            jobId: job.jobId,
+            customerId: job.customerId,
+            vehicleId: job.vehicleId,
+            technicianId: job.technicianId,
+            notes: job.notes,
+            jobStatusId: job.jobStatus?.id || null,  // Extract just the ID
+            jobTypeId: job.jobType?.id || null,      // Extract just the ID
+            createdBy: job.createdBy
+        };
 
-        console.log("Sending job data without timestamps:", jobWithoutTimestamps); // Log the job data being sent to the API
-
-
+        console.log("Sending job data:", transformedJob); // Log the transformed job data
 
         try {
-            const response = await axiosInstance.post('/job/add', jobWithoutTimestamps, {
+            const response = await axiosInstance.post('/job/add', transformedJob, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -168,18 +175,27 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
     };
 // Function to update an existing job
     const saveJob = async (job) => {
-        // Remove createdAt and updatedAt before sending to the API
-        const { createdAt, updatedAt, ...jobWithoutTimestamps } = job;
+        // Transform the job data before sending to API
+        const transformedJob = {
+            jobId: job.jobId,
+            customerId: job.customerId,
+            vehicleId: job.vehicleId,
+            technicianId: job.technicianId,
+            notes: job.notes,
+            JobStatusID: job.jobStatus?.id || null,  // Extract just the ID
+            JobTypeID: job.jobType?.id || null,      // Extract just the ID
+            createdBy: job.createdBy
+        };
 
         try {
-            const response = await axiosInstance.put('/job/update', jobWithoutTimestamps);  // Send updated job data to the backend
+            const response = await axiosInstance.put('/job/update', transformedJob);
             if (response.status === 200) {
                 onClose();
             }
-            return response.data;  // Optionally return the updated job data
+            return response.data;
         } catch (error) {
-            console.error('Error updating job:', error.response?.data || error.message);  // Handle error
-            throw error;  // Rethrow the error if needed for further handling
+            console.error('Error updating job:', error.response?.data || error.message);
+            throw error;
         }
     };
 
@@ -237,7 +253,23 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
     };
 
     const handleSelectChange = (selectedOption, name) => {
-        setLocalJob(prev => ({...prev, [name]: selectedOption ? selectedOption.value : null}));
+        if (name === 'jobStatus' || name === 'jobType') {
+            // For status and type, store the whole object
+            setLocalJob(prev => ({
+                ...prev,
+                [name]: {
+                    id: selectedOption?.value,
+                    title: selectedOption?.label?.props?.children[1], // Get the title from the label
+                    color: selectedOption?.color
+                }
+            }));
+        } else {
+            // For other fields, just store the value
+            setLocalJob(prev => ({
+                ...prev,
+                [name]: selectedOption ? selectedOption.value : null
+            }));
+        }
     };
 
     const handleSave = () => {
@@ -445,8 +477,9 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                                 <label className="form-label">Job Status</label>
                                 <Select
                                     options={statusOptions}
-                                    value={statusOptions.find(option => option.value === localJob.jobStatus) || null} // Ensure the selected option is set
-                                    onChange={(selectedOption) => handleSelectChange(selectedOption, 'jobStatus')} // Update jobStatus
+                                    value={statusOptions.find(option => option.value === localJob.jobStatus?.id) || null}
+                                    onChange={(selectedOption) => handleSelectChange(selectedOption, 'jobStatus')}
+                                    styles={selectStyles}
                                     placeholder="Select Job Status"
                                 />
                             </div>
@@ -455,8 +488,9 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                                 <label className="form-label">Job Type</label>
                                 <Select
                                     options={typeOptions}
-                                    value={typeOptions.find(option => option.value === localJob.jobType) || null} // Ensure the selected option is set
-                                    onChange={(selectedOption) => handleSelectChange(selectedOption, 'jobType')} // Update jobType
+                                    value={typeOptions.find(option => option.value === localJob.jobType?.id) || null}
+                                    onChange={(selectedOption) => handleSelectChange(selectedOption, 'jobType')}
+                                    styles={selectStyles}
                                     placeholder="Select Job Type"
                                 />
                             </div>
