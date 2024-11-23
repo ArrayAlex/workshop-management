@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import SearchComponent from '../SearchComponent/SearchComponent';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons'; // For profile icon
 import './Navbar.css';
+import axiosInstance from "../../api/axiosInstance";
 
 const Navbar = ({ toggleSidebar }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-
+  const navigate = useNavigate();
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
   };
@@ -25,6 +26,13 @@ const Navbar = ({ toggleSidebar }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  const logout = async () => {
+    const response = await axiosInstance.post('/auth/logout/');
+    if (response.status == 200){
+      navigate('/login');
+    }
+  }
 
   return (
     <nav id="navbar" className="text-white shadow-md p-2">
@@ -67,7 +75,7 @@ const Navbar = ({ toggleSidebar }) => {
               </div>
               <ul>
                 <li className="hover:bg-gray-200 p-2">
-                  <Link to="/settings" className="flex items-center block">
+                  <Link to="" onClick={logout} className="flex items-center block">
                     Logout
                   </Link>
                 </li>

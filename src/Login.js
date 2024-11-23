@@ -1,42 +1,58 @@
 // src/Login.js
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; 
-import axiosInstance from './api/axiosInstance'; 
+import React, {useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import axiosInstance from './api/axiosInstance';
 
-const Login = ({ setIsAuthenticated }) => {
+const Login = ({setIsAuthenticated}) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [company, setCompany] = useState('');
     const [error, setError] = useState('');
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axiosInstance.post('/auth/login', { username, password, company });
-            console.log(response.data); 
-            
+            const response = await axiosInstance.post('/auth/login', {username, password, company});
+            console.log(response.data);
+
             // Assuming response.data should contain isAuthenticated
             if (response.status === 200) {
                 // Store user plan details in local storage
                 localStorage.setItem('userPlan', JSON.stringify(response.data.plan));
                 localStorage.setItem('newUser', response.data.newUser);
-    
+
                 // Update the authentication state in App
                 setIsAuthenticated(true);
-    
+
                 // Redirect to the dashboard
                 navigate('/dashboard');
             } else {
                 setError('Login failed, please check your credentials');
             }
-    
+
         } catch (err) {
-            
+
             setError('Invalid email or password');
             console.error(err);
         }
     };
+
+    useEffect(() => {
+        verify();
+    }, []);
+
+    const verify = async (e) => {
+        try {
+            const response = await axiosInstance.get('/auth/verify');
+
+            if (response.status == 200) {
+                navigate('/dashboard');
+            }
+        } catch (e) {
+
+        }
+    }
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -82,7 +98,8 @@ const Login = ({ setIsAuthenticated }) => {
                     </button>
                 </form>
                 <p className="text-center text-sm text-gray-600">
-                    Don't have an account? <a href="/register" className="text-blue-600 hover:underline">Register here</a>
+                    Don't have an account? <a href="/register" className="text-blue-600 hover:underline">Register
+                    here</a>
                 </p>
             </div>
         </div>
