@@ -89,7 +89,7 @@ const Calendar = () => {
             const startDate = start.toISOString();
             const endDate = end.toISOString();
 
-            console.log(`Fetching appointments between ${startDate} and ${endDate}`);
+            //console.log(`Fetching appointments between ${startDate} and ${endDate}`);
 
             const response = await axiosInstance.get('/Appointment/Appointments', {
                 params: {
@@ -98,7 +98,7 @@ const Calendar = () => {
                 }
             });
 
-            console.log('Response data:', response.data);
+            //console.log('Response data:', response.data);
 
             const formattedEvents = response.data.map(booking => ({
                 id: booking.id,
@@ -121,10 +121,10 @@ const Calendar = () => {
                 }
             }));
 
-            console.log('Fetched and formatted events:', formattedEvents);
+            //console.log('Fetched and formatted events:', formattedEvents);
             setEvents(formattedEvents);
         } catch (err) {
-            console.error("Error fetching bookings:", err);
+            //console.error("Error fetching bookings:", err);
             setError("Failed to load bookings. Please try again later.");
         } finally {
             setIsLoading(false);
@@ -325,6 +325,7 @@ const Calendar = () => {
             </div>
         );
     };
+
 
     const handleSave = async (updatedEvent) => {
         try {

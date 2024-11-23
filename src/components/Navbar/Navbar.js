@@ -30,6 +30,7 @@ const Navbar = ({ toggleSidebar }) => {
   const logout = async () => {
     const response = await axiosInstance.post('/auth/logout/');
     if (response.status == 200){
+      localStorage.removeItem('userPlan');
       navigate('/login');
     }
   }

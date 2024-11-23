@@ -56,9 +56,9 @@ const CustomerModal = ({ isOpen, onClose, customer, onSave }) => {
     try {
       // Sending formData in the PUT request to create a new customer
       const response = await axiosInstance.post('/customer/add', formData);
-      console.log('Customer created successfully:', response.data);
+      //console.log('Customer created successfully:', response.data);
     } catch (error) {
-      console.error('Error creating customer:', error);
+      //console.error('Error creating customer:', error);
     }
   };
 
@@ -66,9 +66,9 @@ const CustomerModal = ({ isOpen, onClose, customer, onSave }) => {
     try {
       // Sending formData in the POST request to update an existing customer
       const response = await axiosInstance.put('/customer/update', formData);
-      console.log('Customer updated successfully:', response.data);
+      //console.log('Customer updated successfully:', response.data);
     } catch (error) {
-      console.error('Error updating customer:', error);
+      //console.error('Error updating customer:', error);
     }
   };
 

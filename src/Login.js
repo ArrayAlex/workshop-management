@@ -1,26 +1,54 @@
-// src/Login.js
-import React, {useEffect, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axiosInstance from './api/axiosInstance';
 
-const Login = ({setIsAuthenticated}) => {
+const Login = ({ setIsAuthenticated }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [company, setCompany] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
+
+    const verify = async () => {
+        try {
+            const response = await axiosInstance.get('/auth/verify');
+
+            if (response.status === 200) {
+                navigate('/dashboard');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    // Check authentication status when component is mounted
+    useEffect(() => {
+        setIsLoading(true);
+
+        // Check if the user is already authenticated from localStorage
+        if (localStorage.getItem('userPlan')) {
+            setIsAuthenticated(true);
+            navigate('/dashboard'); // Redirect to dashboard if logged in
+        } else {
+            verify(); // If not logged in, verify through the backend
+        }
+
+        setIsLoading(false);
+    }, [setIsAuthenticated, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axiosInstance.post('/auth/login', {username, password, company});
-            console.log(response.data);
+            const response = await axiosInstance.post('/auth/login', { username, password, company });
+            //console.log(response.data);
 
-            // Assuming response.data should contain isAuthenticated
             if (response.status === 200) {
                 // Store user plan details in local storage
                 localStorage.setItem('userPlan', JSON.stringify(response.data.plan));
                 localStorage.setItem('newUser', response.data.newUser);
+                localStorage.setItem('jobStatuses', JSON.stringify(response.data.jobStatuses));
+                localStorage.setItem('jobTypes', JSON.stringify(response.data.jobTypes));
 
                 // Update the authentication state in App
                 setIsAuthenticated(true);
@@ -32,26 +60,23 @@ const Login = ({setIsAuthenticated}) => {
             }
 
         } catch (err) {
-
             setError('Invalid email or password');
             console.error(err);
         }
     };
 
-    useEffect(() => {
-        verify();
-    }, []);
+    const LoadingSpinner = () => (
+        <div className="flex justify-center items-center py-6">
+            <div className="animate-spin border-t-4 border-blue-500 border-solid w-10 h-10 rounded-full"></div>
+        </div>
+    );
 
-    const verify = async (e) => {
-        try {
-            const response = await axiosInstance.get('/auth/verify');
-
-            if (response.status == 200) {
-                navigate('/dashboard');
-            }
-        } catch (e) {
-
-        }
+    if (isLoading) {
+        return (
+            <div className="p-6 max-h-[calc(90vh-8rem)] overflow-y-auto">
+                <LoadingSpinner />
+            </div>
+        );
     }
 
     return (

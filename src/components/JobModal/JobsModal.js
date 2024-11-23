@@ -10,16 +10,16 @@ Modal.setAppElement('#root');
 
 const JobModal = ({isOpen, onClose, job, onSave}) => {
     const [localJob, setLocalJob] = useState({
-        jobId: null,
-        customerId: null,
-        vehicleId: null,
-        technicianId: null,
-        notes: '',
-        appointmentId: null,
-        jobStatus: null,
-        jobType: null,
-        updatedAt: null,
-        createdAt: null
+        jobId: job ? (job.jobId && Number.isInteger(job.jobId) ? job.jobId : null) : null,
+        customerId: job ? job.customerId : null,
+        vehicleId: job ? job.vehicleId : null,
+        technicianId: job ? job.technicianId : null,
+        notes: job ? job.notes : '',
+        jobStatus: job ? job.jobStatus : null,
+        jobType: job ? job.jobType : null,
+        updatedAt: job ? (job.updatedAt ? new Date(job.updatedAt) : null) : null,
+        createdAt: job ? (job.createdAt ? new Date(job.createdAt) : null) : null,
+        createdBy: job ? job.createdBy : null,
     });
 
     const [technicians, setTechnicians] = useState([]);
@@ -29,18 +29,34 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
 
     useEffect(() => {
         if (job) {
-            console.log('Received job:', job); // Debugging line
+            console.log('job.jobType ' + job.jobType );
+            console.log('job.jobStatus  ' + job.jobStatus  );
             setLocalJob({
-                jobId: job.jobId,
-                customerId: job.customerId,
-                vehicleId: job.vehicleId,
-                technicianId: job.technicianId,
+                jobId: job.jobId || null,
+                customerId: job.customerId || null,
+                vehicleId: job.vehicleId || null,
+                technicianId: job.technicianId || null,
                 notes: job.notes || '',
-                appointmentId: job.appointmentId,
-                jobStatus: job.jobStatus,
-                jobType: job.jobType,
+                jobStatus: job.jobStatus || null,
+                jobType: job.jobType || null,
                 updatedAt: job.updatedAt ? new Date(job.updatedAt) : null,
-                createdAt: job.createdAt ? new Date(job.createdAt) : null
+                createdAt: job.createdAt ? new Date(job.createdAt) : null,
+                createdBy: job.createdBy || null
+            });
+        } else {
+            console.log('job.jobType ' );
+            console.log('job.jobStatus  '  );
+            setLocalJob({
+                jobId: null,
+                customerId: null,
+                vehicleId: null,
+                technicianId: null,
+                notes: '',
+                jobStatus: null,
+                jobType: null,
+                updatedAt: null,
+                createdAt: null,
+                createdBy: null
             });
         }
         setIsLoading(false);
@@ -106,14 +122,14 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
         try {
             const response = await axiosInstance.get('/customer/customers');
             if (response.status === 200) {
-                console.log('Fetched customers:', response.data); // Debugging
+                //console.log('Fetched customers:', response.data); // Debugging
                 const customerOptions = response.data.map(customer => ({
                     value: customer.id, // Use the ID as the value
                     label: `${customer.firstName} ${customer.lastName}` // Combine first and last name
                 }));
                 setCustomers(customerOptions); // Set options for the dropdown
             } else {
-                console.error("Failed to fetch customers");
+                //console.error("Failed to fetch customers");
                 setCustomers([]);
             }
         } catch (error) {
@@ -121,18 +137,92 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
             setCustomers([]);
         }
     };
+
+
+
+    const jobStatuses = JSON.parse(localStorage.getItem('jobStatuses'));
+    const jobTypes = JSON.parse(localStorage.getItem('jobTypes'))
+
+    const addJob = async (job) => {
+        // Remove createdAt and updatedAt before sending to the API
+        const { createdAt, updatedAt, ...jobWithoutTimestamps } = job;
+
+        console.log("Sending job data without timestamps:", jobWithoutTimestamps); // Log the job data being sent to the API
+
+
+
+        try {
+            const response = await axiosInstance.post('/job/add', jobWithoutTimestamps, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.status === 200) {
+                onClose();
+            }
+            return response.data;
+        } catch (error) {
+            console.error('Error adding job:', error.response?.data || error.message);
+            throw error;
+        }
+    };
+// Function to update an existing job
+    const saveJob = async (job) => {
+        // Remove createdAt and updatedAt before sending to the API
+        const { createdAt, updatedAt, ...jobWithoutTimestamps } = job;
+
+        try {
+            const response = await axiosInstance.put('/job/update', jobWithoutTimestamps);  // Send updated job data to the backend
+            if (response.status === 200) {
+                onClose();
+            }
+            return response.data;  // Optionally return the updated job data
+        } catch (error) {
+            console.error('Error updating job:', error.response?.data || error.message);  // Handle error
+            throw error;  // Rethrow the error if needed for further handling
+        }
+    };
+
+
+// Example usage: Populate dropdown for job statuses
+    const statusOptions = Array.isArray(jobStatuses)
+        ? jobStatuses.map(status => ({
+            value: status.id || null,
+            label: (
+                <div className="flex items-center">
+                    <span className="w-2.5 h-2.5 rounded-full mr-2" style={{backgroundColor: status.color}}></span>
+                    {status.title}
+                </div>
+            ),
+            color: status.color
+        }))
+        : [];  // Return an empty array if jobStatuses is not an array
+
+    // Add color for job type
+    const typeOptions = Array.isArray(jobTypes)
+        ? jobTypes.map(type => ({
+            value: type.id || null,
+            label: (
+                <div className="flex items-center">
+                    <span className="w-2.5 h-2.5 rounded-full mr-2" style={{backgroundColor: type.color}}></span>
+                    {type.title}
+                </div>
+            ),
+            color: type.color
+        }))
+        : [];
     const getVehicles = async () => {
         try {
             const response = await axiosInstance.get('/vehicle/vehicles');
             if (response.status === 200) {
-                console.log('Fetched customers:', response.data); // Debugging
+                //.log('Fetched customers:', response.data); // Debugging
                 const vehicleOptions = response.data.map(vehicle => ({
                     value: vehicle.id, // Use the ID as the value
                     label: `${vehicle.rego} ${vehicle.make} ${vehicle.model}` // Combine first and last name
                 }));
                 setVehicles(vehicleOptions); // Set options for the dropdown
             } else {
-                console.error("Failed to fetch customers");
+                //console.error("Failed to fetch customers");
                 setVehicles([]);
             }
         } catch (error) {
@@ -151,9 +241,18 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
     };
 
     const handleSave = () => {
-        onSave(localJob);
-        onClose();
+        // Assuming you're either adding or updating a job here
+        if (localJob.jobId) {
+            // Update existing job logic
+            console.log(localJob);
+            saveJob(localJob);
+        } else {
+            console.log(localJob);
+            // Add new job logic
+            addJob(localJob);
+        }
     };
+
 
     if (isLoading) return (
         <Modal
@@ -248,10 +347,17 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
             ...provided,
             maxHeight: '150px',
         }),
-        singleValue: (provided) => ({
+        option: (provided, state) => ({
             ...provided,
-            color: 'black', // Set selected value text color to black
+            backgroundColor: state.isSelected ? state.data.color : state.isFocused ? '#e0e0e0' : null, // Color when selected or focused
+            color: state.isSelected ? '#fff' : '#000', // Text color for selected option
         }),
+
+        singleValue: (provided, state) => ({
+            ...provided,
+            color: '#000', // Color of the selected value
+        }),
+
     };
 
     return (
@@ -263,7 +369,26 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
         >
             <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl">
                 <div className="bg-blue-600 text-white px-6 py-4 flex justify-between items-center">
-                    <h2 className="text-2xl font-bold">Job {localJob.jobId || 'New'}</h2>
+                    <div className="inline-flex items-center space-x-4">
+                        <h2 className="text-2xl font-bold">
+                            Job {localJob.jobId ? `#${localJob.jobId}` : 'New'}
+                        </h2>
+                        {localJob.createdAt && localJob.updatedAt && localJob.createdBy && (
+                            <div className="text-sm text-gray-300 inline-flex items-center space-x-4">
+                                <p>Created At: {localJob.createdAt.toLocaleString()}</p>
+                                <p>Modified At: {localJob.updatedAt.toLocaleString()}</p>
+                                <p>
+                                    Created By: {
+                                    technicians.find(technician => technician.value === localJob.createdBy).label || ''
+                                }
+                                </p>
+                            </div>
+
+                        )}
+
+                    </div>
+
+
                     <button onClick={onClose} className="text-white hover:text-gray-200">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                              xmlns="http://www.w3.org/2000/svg">
@@ -276,7 +401,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                             <div>
-                                <label className="form-label">Customer</label>
+                            <label className="form-label">Customer</label>
                                 <Select
                                     options={customers} // Customer options
                                     value={customers.find(customer => customer.value === localJob.customerId) || null} // Find and set selected value
@@ -285,7 +410,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                                 />
                             </div>
                             <div>
-                                <label className="form-label">Vehicle</label>
+                            <label className="form-label">Vehicle</label>
                                 <Select
                                     options={vehicles} // Vehicle options
                                     value={vehicles.find(vehicle => vehicle.value === localJob.vehicleId) || null} // Find and set selected value
@@ -316,40 +441,38 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                                 />
 
                             </div>
-                            {localJob.jobStatus && localJob.jobStatus.title && (
-                                <div>
-                                    <label className="form-label">Job Status</label>
-                                    <div
-                                        className="px-2 py-1 rounded text-white text-sm inline-block"
-                                        style={{backgroundColor: localJob.jobStatus.color}}
-                                    >
-                                        {localJob.jobStatus.title}
-                                    </div>
-                                </div>
-                            )}
-                            {localJob.jobType && (
-                                <div>
-                                    <label className="form-label">Job Type</label>
-                                    <div
-                                        className="px-2 py-1 rounded text-white text-sm inline-block"
-                                        style={{backgroundColor: localJob.jobType.color || '#808080'}}
-                                    >
-                                        {localJob.jobType.title || 'N/A'}
-                                    </div>
-                                </div>
-                            )}
-                            {localJob.createdAt && (
-                                <div>
-                                    <label className="form-label">Created At</label>
-                                    <p>{localJob.createdAt.toLocaleString()}</p>
-                                </div>
-                            )}
-                            {localJob.updatedAt && (
-                                <div>
-                                    <label className="form-label">Updated At</label>
-                                    <p>{localJob.updatedAt.toLocaleString()}</p>
-                                </div>
-                            )}
+                            <div>
+                                <label className="form-label">Job Status</label>
+                                <Select
+                                    options={statusOptions}
+                                    value={statusOptions.find(option => option.value === localJob.jobStatus) || null} // Ensure the selected option is set
+                                    onChange={(selectedOption) => handleSelectChange(selectedOption, 'jobStatus')} // Update jobStatus
+                                    placeholder="Select Job Status"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="form-label">Job Type</label>
+                                <Select
+                                    options={typeOptions}
+                                    value={typeOptions.find(option => option.value === localJob.jobType) || null} // Ensure the selected option is set
+                                    onChange={(selectedOption) => handleSelectChange(selectedOption, 'jobType')} // Update jobType
+                                    placeholder="Select Job Type"
+                                />
+                            </div>
+
+                            {/*{localJob.createdAt && (*/}
+                            {/*    <div>*/}
+                            {/*        <label className="form-label">Created At</label>*/}
+                            {/*        <p>{localJob.createdAt.toLocaleString()}</p>*/}
+                            {/*    </div>*/}
+                            {/*)}*/}
+                            {/*{localJob.updatedAt && (*/}
+                            {/*    <div>*/}
+                            {/*        <label className="form-label">Updated At</label>*/}
+                            {/*        <p>{localJob.updatedAt.toLocaleString()}</p>*/}
+                            {/*    </div>*/}
+                            {/*)}*/}
                         </div>
                     </div>
                 </div>
