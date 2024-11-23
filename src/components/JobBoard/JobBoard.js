@@ -36,7 +36,7 @@ const JobBoard = () => {
         'in-progress': [],
         'completed': []
     });
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState(''); // Track search input
     const [isJobModalOpen, setIsJobModalOpen] = useState(false);
     const [selectedJob, setSelectedJob] = useState(null);
     const labelDropdownRef = useRef(null);
@@ -83,16 +83,27 @@ const JobBoard = () => {
     });
 
     const filteredJobs = useMemo(() => {
+
         const lowercasedSearchTerm = searchTerm.toLowerCase();
         return Object.entries(jobs).reduce((acc, [columnName, columnJobs]) => {
             acc[columnName] = columnJobs.filter(job =>
+                // Check job status description
                 (job.jobStatus && job.jobStatus.description && job.jobStatus.description.toLowerCase().includes(lowercasedSearchTerm)) ||
+                // Check job ID
                 job.jobId.toString().includes(lowercasedSearchTerm) ||
-                (job.customer && job.customer.name && job.customer.name.toLowerCase().includes(lowercasedSearchTerm))
+                // Check customer name
+                (job.customer && job.customer.name && job.customer.name.toLowerCase().includes(lowercasedSearchTerm)) ||
+                // Check vehicle rego
+                (job.vehicle && job.vehicle.rego && job.vehicle.rego.toLowerCase().includes(lowercasedSearchTerm))
             );
             return acc;
         }, {});
     }, [jobs, searchTerm]);
+
+    const handleSearchChange = (e) => {
+        console.log(e);
+        setSearchTerm(e.target.value);
+    };
 
     const handleDragEnd = useCallback(async (result) => {
         const { source, destination } = result;
@@ -355,10 +366,10 @@ const JobBoard = () => {
                             <div className="relative">
                                 <input
                                     type="text"
-                                    placeholder="Search jobs..."
+                                    placeholder="Search job #ID or rego..."
                                     className="w-full md:w-64 pl-8 pr-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                                     value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onChange={handleSearchChange}
                                 />
                                 <svg
                                     className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2"
