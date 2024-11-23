@@ -180,17 +180,18 @@ const JobBoard = () => {
     }, []);
 
     const handleCreateJob = useCallback(() => {
-        setSelectedJob(null);
-        setIsJobModalOpen(true);
+        setSelectedJob(null); // No job selected for a new job
+        setIsJobModalOpen(true); // Open the modal
     }, []);
 
     const openJobModal = useCallback((job, event) => {
         if (event) {
-            event.stopPropagation();
+            event.stopPropagation(); // Prevent triggering the label dropdown
         }
-        setSelectedJob(job);
-        setIsJobModalOpen(true);
+        setSelectedJob(job); // Set the selected job to be displayed in the modal
+        setIsJobModalOpen(true); // Open the job modal
     }, []);
+
 
     const closeJobModal = useCallback(() => {
         setIsJobModalOpen(false);
@@ -321,21 +322,16 @@ const JobBoard = () => {
                             </div>
                             <button
                                 onClick={handleCreateJob}
-                                className="bg-blue-600 text-white rounded px-4 py-2 text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-300 ease-in-out w-full md:w-auto flex items-center justify-center"
+                                className="bg-blue-500 text-white px-4 py-2 rounded-md shadow hover:bg-blue-600 transition duration-300"
                             >
-                                <svg className="w-4 h-4 mr-2" fill="none" strokeLinecap="round"
-                                     strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24"
-                                     stroke="currentColor">
-                                    <path d="M12 4v16m8-8H4"></path>
-                                </svg>
-                                Create Job Card
+                                Create Job
                             </button>
                         </div>
                     </div>
                 </div>
             </header>
             <DragDropContext onDragEnd={handleDragEnd}>
-                <div className="flex-1 overflow-hidden bg-gray-100">
+            <div className="flex-1 overflow-hidden bg-gray-100">
                     <div className="flex h-full">
                         {Object.entries(sortedJobs).map(([columnName, columnJobs]) => (
                             <Droppable key={columnName} droppableId={columnName}>
@@ -378,12 +374,12 @@ const JobBoard = () => {
                     </div>
                 </div>
             </DragDropContext>
-            {isJobModalOpen && selectedJob && (
+            {isJobModalOpen && (
                 <JobModal
                     isOpen={isJobModalOpen}
                     onClose={closeJobModal}
                     job={selectedJob}
-                    onSave={handleJobUpdate}
+
                     // Pass other necessary props like technicians, customers, vehicles
                 />
             )}
