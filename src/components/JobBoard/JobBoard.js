@@ -13,8 +13,7 @@ const labels = [
 ];
 
 const handleDragStart = (start) => {
-    console.log("Dragging started:");
-    console.log("Dragged jobId:", start.draggableId);
+
 };
 const useClickOutside = (ref, callback) => {
     useEffect(() => {
@@ -40,40 +39,30 @@ const JobBoard = () => {
     const [isJobModalOpen, setIsJobModalOpen] = useState(false);
     const [selectedJob, setSelectedJob] = useState(null);
     const labelDropdownRef = useRef(null);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const fetchJobs = useCallback(async () => {
+        try {
+            const response = await axiosInstance.get('/Job/jobs');
+            const fetchedJobs = response.data;
+
+            const categorizedJobs = fetchedJobs.reduce((acc, job) => {
+                const column = job.jobBoardID === 0 ? 'to-do' :
+                    job.jobBoardID === 1 ? 'in-progress' :
+                        job.jobBoardID === 2 ? 'completed' : 'to-do';
+                acc[column].push(job);
+                return acc;
+            }, { 'to-do': [], 'in-progress': [], 'completed': [] });
+
+            setJobs(categorizedJobs);
+        } catch (error) {
+            console.error('Error fetching jobs:', error);
+        }
+    }, []);
 
     useEffect(() => {
-        const fetchJobs = async () => {
-            try {
-                const response = await axiosInstance.get('/Job/jobs');
-                const fetchedJobs = response.data;
-
-                // Categorize jobs based on their jobBoardID
-                const categorizedJobs = fetchedJobs.reduce((acc, job) => {
-                    switch (job.jobBoardID) {
-                        case 0:
-                            acc['to-do'].push(job);
-                            break;
-                        case 1:
-                            acc['in-progress'].push(job);
-                            break;
-                        case 2:
-                            acc['completed'].push(job);
-                            break;
-                        default:
-                            // Default to 'to-do' for any other status
-                            acc['to-do'].push(job);
-                    }
-                    return acc;
-                }, { 'to-do': [], 'in-progress': [], 'completed': [] });
-
-                setJobs(categorizedJobs);
-            } catch (error) {
-                console.error('Error fetching jobs:', error);
-            }
-        };
-
         fetchJobs();
-    }, []);
+    }, [fetchJobs, refreshTrigger]);
+
 
     useClickOutside(labelDropdownRef, () => {
         if (labelDropdownRef.current) {
@@ -82,6 +71,11 @@ const JobBoard = () => {
         }
     });
 
+    const [sortOption, setSortOption] = useState({
+        'to-do': 'newest',
+        'in-progress': 'newest',
+        'completed': 'newest'
+    });
     const filteredJobs = useMemo(() => {
 
         const lowercasedSearchTerm = searchTerm.toLowerCase();
@@ -101,94 +95,149 @@ const JobBoard = () => {
     }, [jobs, searchTerm]);
 
     const handleSearchChange = (e) => {
-        console.log(e);
+
         setSearchTerm(e.target.value);
     };
 
+
+
     const handleDragEnd = useCallback(async (result) => {
-        const { source, destination } = result;
-        if (!destination) return;
+        const { source, destination, draggableId } = result;
 
-        const sourceColumn = source.droppableId;
-        const destColumn = destination.droppableId;
-        const jobBoardIDMap = {
-            'to-do': 0,
-            'in-progress': 1,
-            'completed': 2
-        };
-        const newJobBoardID = jobBoardIDMap[destColumn];
+        // Return if dropped outside or in the same position
+        if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
+            return;
+        }
 
+        // Create deep copy of current jobs state
+        const newJobs = JSON.parse(JSON.stringify(jobs));
 
+        // Remove from source
+        const [movedJob] = newJobs[source.droppableId].splice(source.index, 1);
 
-        setJobs(prevJobs => {
-            const newJobs = { ...prevJobs };
-            const sourceJobs = [...newJobs[sourceColumn]];
-            const destJobs = destColumn === sourceColumn ? sourceJobs : [...newJobs[destColumn]];
+        // Update job's board ID
+        const newBoardId = destination.droppableId === 'to-do' ? 0
+            : destination.droppableId === 'in-progress' ? 1
+                : 2;
 
-            // Find the index of the job in the source column
-            const sourceIndex = sourceJobs.findIndex(option => option.jobId == result.draggableId);
-            if (sourceIndex === -1) {
-                console.error('Job not found in source column');
-                return prevJobs;
-            }
+        movedJob.jobBoardID = newBoardId;
 
+        // Get the destination column jobs
+        const destJobs = newJobs[destination.droppableId];
 
+        // Sort function based on current sort option
+        const getSortedIndex = (job, jobs, sortOption) => {
+            return jobs.findIndex(existingJob => {
+                switch (sortOption) {
+                    case 'newest':
+                        const dateCompare = new Date(existingJob.updatedAt) - new Date(job.updatedAt);
+                        return dateCompare < 0 || (dateCompare === 0 && existingJob.jobId < job.jobId);
 
-            // Remove the job from the source array
-            const [removed] = sourceJobs.splice(sourceIndex, 1);
+                    case 'oldest':
+                        const oldestDateCompare = new Date(existingJob.updatedAt) - new Date(job.updatedAt);
+                        return oldestDateCompare > 0 || (oldestDateCompare === 0 && existingJob.jobId < job.jobId);
 
-            // Create updated job with new board ID
-            const updatedJob = {
-                ...removed,
-                jobBoardID: newJobBoardID,
-            };
+                    case 'highest':
+                        return (existingJob.invoiceAmount || 0) < (job.invoiceAmount || 0);
 
-            // Insert the job at the destination
-            destJobs.splice(destination.index, 0, updatedJob);
+                    case 'lowest':
+                        return (existingJob.invoiceAmount || 0) > (job.invoiceAmount || 0);
 
-            // Update both columns
-            newJobs[sourceColumn] = sourceJobs;
-            if (sourceColumn !== destColumn) {
-                newJobs[destColumn] = destJobs;
-            }
-
-            return newJobs;
-        });
-
-        // Send the updated job status to the backend
-        try {
-            await axiosInstance.put(`/Job/jobboardid/${result.draggableId}`, newJobBoardID, {
-                headers: {
-                    'Content-Type': 'application/json'
+                    default:
+                        const defaultDateCompare = new Date(existingJob.updatedAt) - new Date(job.updatedAt);
+                        return defaultDateCompare < 0 || (defaultDateCompare === 0 && existingJob.jobId < job.jobId);
                 }
             });
+        };
 
+        // Find the correct sorted position
+        const sortedIndex = getSortedIndex(movedJob, destJobs, sortOption[destination.droppableId]);
+        const finalIndex = sortedIndex === -1 ? destJobs.length : sortedIndex;
+
+        // Insert at the sorted position
+        newJobs[destination.droppableId].splice(finalIndex, 0, movedJob);
+
+        // Immediately update UI
+        setJobs(newJobs);
+
+        try {
+            // Quietly update backend
+            await axiosInstance.put(
+                `/Job/jobboardid/${draggableId}`,
+                newBoardId,
+                { headers: { 'Content-Type': 'application/json' }}
+            );
+
+            // Silently fetch latest data in background
             const response = await axiosInstance.get('/Job/jobs');
             const fetchedJobs = response.data;
+
+            // Only update state if there are meaningful differences
             const categorizedJobs = fetchedJobs.reduce((acc, job) => {
-                switch (job.jobBoardID) {
-                    case 0:
-                        acc['to-do'].push(job);
-                        break;
-                    case 1:
-                        acc['in-progress'].push(job);
-                        break;
-                    case 2:
-                        acc['completed'].push(job);
-                        break;
-                    default:
-                        acc['to-do'].push(job);
-                }
+                const column = job.jobBoardID === 0 ? 'to-do' :
+                    job.jobBoardID === 1 ? 'in-progress' :
+                        job.jobBoardID === 2 ? 'completed' : 'to-do';
+                acc[column].push(job);
                 return acc;
             }, { 'to-do': [], 'in-progress': [], 'completed': [] });
 
-            setJobs(categorizedJobs);
+            // Sort each column in categorizedJobs
+            Object.keys(categorizedJobs).forEach(columnName => {
+                categorizedJobs[columnName].sort((a, b) => {
+                    switch (sortOption[columnName]) {
+                        case 'newest':
+                            const dateCompare = new Date(b.updatedAt) - new Date(a.updatedAt);
+                            return dateCompare === 0 ? b.jobId - a.jobId : dateCompare;
+
+                        case 'oldest':
+                            const oldestDateCompare = new Date(a.updatedAt) - new Date(b.updatedAt);
+                            return oldestDateCompare === 0 ? b.jobId - a.jobId : oldestDateCompare;
+
+                        case 'highest':
+                            return (b.invoiceAmount || 0) - (a.invoiceAmount || 0);
+
+                        case 'lowest':
+                            return (a.invoiceAmount || 0) - (b.invoiceAmount || 0);
+
+                        default:
+                            const defaultDateCompare = new Date(b.updatedAt) - new Date(a.updatedAt);
+                            return defaultDateCompare === 0 ? b.jobId - a.jobId : defaultDateCompare;
+                    }
+                });
+            });
+
+            // Compare current UI state with server state
+            const currentStateStr = JSON.stringify(newJobs);
+            const serverStateStr = JSON.stringify(categorizedJobs);
+
+            // Only update if there are differences besides the drag we just did
+            if (currentStateStr !== serverStateStr) {
+                // Create a merged state that preserves our drag but gets other updates
+                const mergedJobs = JSON.parse(JSON.stringify(categorizedJobs));
+
+                // Ensure our dragged item stays where we put it
+                const draggedItem = newJobs[destination.droppableId][finalIndex];
+
+                // Find and remove the item from wherever it is in the server state
+                Object.keys(mergedJobs).forEach(column => {
+                    mergedJobs[column] = mergedJobs[column].filter(
+                        job => job.jobId !== draggedItem.jobId
+                    );
+                });
+
+                // Put it in the correct sorted position
+                const newSortedIndex = getSortedIndex(draggedItem, mergedJobs[destination.droppableId], sortOption[destination.droppableId]);
+                const newFinalIndex = newSortedIndex === -1 ? mergedJobs[destination.droppableId].length : newSortedIndex;
+                mergedJobs[destination.droppableId].splice(newFinalIndex, 0, draggedItem);
+
+                setJobs(mergedJobs);
+            }
         } catch (error) {
             console.error('Error updating job status:', error);
-            // Optionally, you might want to revert the UI state here if the backend update fails
+            // On backend error, revert to original state
+            fetchJobs();
         }
-    }, []);
-
+    }, [jobs, fetchJobs, sortOption]);
 
     const handleLabelClick = useCallback((e, jobId) => {
         e.stopPropagation();
@@ -239,10 +288,13 @@ const JobBoard = () => {
         setIsJobModalOpen(true); // Open the job modal
     }, []);
 
-
+    useEffect(() => {
+        fetchJobs();
+    }, [fetchJobs, refreshTrigger]);
     const closeJobModal = useCallback(() => {
         setIsJobModalOpen(false);
         setSelectedJob(null);
+        setRefreshTrigger(prev => prev + 1); // Trigger refresh when modal closes
     }, []);
 
     const handleJobUpdate = useCallback((updatedJob) => {
@@ -256,6 +308,7 @@ const JobBoard = () => {
             });
             return newJobs;
         });
+        setRefreshTrigger(prev => prev + 1); // Trigger refresh after update
         closeJobModal();
     }, [closeJobModal]);
 
@@ -268,11 +321,7 @@ const JobBoard = () => {
         return colors[colorIndex];
     }, []);
 
-    const [sortOption, setSortOption] = useState({
-        'to-do': 'newest',
-        'in-progress': 'newest',
-        'completed': 'newest'
-    });
+
 
     const handleSort = useCallback((columnName, option) => {
         setSortOption(prev => ({...prev, [columnName]: option}));
@@ -300,7 +349,7 @@ const JobBoard = () => {
                         return (a.invoiceAmount || 0) - (b.invoiceAmount || 0);
 
                     default:
-                        // Default to newest first
+
                         const defaultDateCompare = new Date(b.updatedAt) - new Date(a.updatedAt);
                         return defaultDateCompare === 0 ? b.jobId - a.jobId : defaultDateCompare;
                 }
@@ -380,6 +429,7 @@ const JobBoard = () => {
                             </div>
                             <button
                                 onClick={handleCreateJob}
+                                // onClose={closeJobModal}
                                 className="bg-blue-500 text-white px-4 py-2 rounded-md shadow hover:bg-blue-600 transition duration-300"
                             >
                                 Create Job

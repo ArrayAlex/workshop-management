@@ -144,7 +144,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
     const jobTypes = JSON.parse(localStorage.getItem('jobTypes'))
 
     const addJob = async (job) => {
-        // Transform the job data before sending to API
+
         const transformedJob = {
             jobId: job.jobId,
             customerId: job.customerId,
@@ -164,8 +164,8 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                     'Content-Type': 'application/json'
                 }
             });
-            if (response.status === 200) {
-                onClose();
+            if (response.status == 200) {
+                
             }
             return response.data;
         } catch (error) {
@@ -175,7 +175,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
     };
 // Function to update an existing job
     const saveJob = async (job) => {
-        // Transform the job data before sending to API
+
         const transformedJob = {
             jobId: job.jobId,
             customerId: job.customerId,
@@ -189,7 +189,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
 
         try {
             const response = await axiosInstance.put('/job/update', transformedJob);
-            if (response.status === 200) {
+            if (response.status == 200) {
                 onClose();
             }
             return response.data;
@@ -276,12 +276,13 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
         // Assuming you're either adding or updating a job here
         if (localJob.jobId) {
             // Update existing job logic
-            console.log(localJob);
+
             saveJob(localJob);
+            onClose();
         } else {
-            console.log(localJob);
-            // Add new job logic
+
             addJob(localJob);
+            onClose();
         }
     };
 
