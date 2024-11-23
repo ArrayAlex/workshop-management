@@ -2,7 +2,8 @@ import React, {useState, useRef, useCallback, useMemo, useEffect} from 'react';
 import {DragDropContext, Droppable, Draggable} from '@hello-pangea/dnd';
 import JobModal from '../JobModal/JobsModal';
 import axiosInstance from "../../api/axiosInstance";
-import {Helmet} from 'react-helmet';// const initialJobs = {
+import {Helmet} from 'react-helmet';
+import { FaCar } from 'react-icons/fa';
 
 const labels = [
     {name: 'Appt Confirmed', color: 'bg-red-500'},
@@ -42,9 +43,9 @@ const JobBoard = () => {
                 const response = await axiosInstance.get('/Job/jobs');
                 const fetchedJobs = response.data;
 
-                // Categorize jobs based on their status
+                // Categorize jobs based on their jobBoardID
                 const categorizedJobs = fetchedJobs.reduce((acc, job) => {
-                    switch (job.jobStatusID) {
+                    switch (job.jobBoardID) {
                         case 0:
                             acc['to-do'].push(job);
                             break;
@@ -81,26 +82,46 @@ const JobBoard = () => {
         const lowercasedSearchTerm = searchTerm.toLowerCase();
         return Object.entries(jobs).reduce((acc, [columnName, columnJobs]) => {
             acc[columnName] = columnJobs.filter(job =>
-                job.jobStatus.description.toLowerCase().includes(lowercasedSearchTerm) ||
+                (job.jobStatus && job.jobStatus.description && job.jobStatus.description.toLowerCase().includes(lowercasedSearchTerm)) ||
                 job.jobId.toString().includes(lowercasedSearchTerm) ||
-                (job.customer && job.customer.name.toLowerCase().includes(lowercasedSearchTerm))
+                (job.customer && job.customer.name && job.customer.name.toLowerCase().includes(lowercasedSearchTerm))
             );
             return acc;
         }, {});
     }, [jobs, searchTerm]);
 
-    const handleDragEnd = useCallback((result) => {
-        const {source, destination} = result;
-        if (!destination) return;
+    const handleDragEnd = useCallback(async (result) => {
+        const { source, destination } = result;
+        if (!destination) return; // Don't do anything if dropped outside
 
+        const sourceColumn = source.droppableId;
+        const destColumn = destination.droppableId;
+
+        // Adjust jobBoardID based on the destination column
+        const jobBoardIDMap = {
+            'to-do': 0,
+            'in-progress': 1,
+            'completed': 2
+        };
+
+        const newJobBoardID = jobBoardIDMap[destColumn];
+
+        // Optimistically update state for the drag action
         setJobs(prevJobs => {
-            const newJobs = {...prevJobs};
-            const sourceColumn = source.droppableId;
-            const destColumn = destination.droppableId;
+            const newJobs = { ...prevJobs };
             const sourceJobs = [...newJobs[sourceColumn]];
-            const destJobs = sourceColumn === destColumn ? sourceJobs : [...newJobs[destColumn]];
+            const destJobs = destColumn === sourceColumn ? sourceJobs : [...newJobs[destColumn]];
+
+            // Get the job being moved
             const [removed] = sourceJobs.splice(source.index, 1);
-            destJobs.splice(destination.index, 0, removed);
+
+            // Update jobBoardID
+            const updatedJob = {
+                ...removed,
+                jobBoardID: newJobBoardID,
+            };
+
+            destJobs.splice(destination.index, 0, updatedJob);
 
             newJobs[sourceColumn] = sourceJobs;
             if (sourceColumn !== destColumn) {
@@ -109,6 +130,17 @@ const JobBoard = () => {
 
             return newJobs;
         });
+
+        // Make the PUT request with just the integer value for jobBoardID
+        try {
+            await axiosInstance.put(`/Job/jobboardid/${result.draggableId}`, newJobBoardID, {
+                headers: {
+                    'Content-Type': 'application/json' // Ensure this header is set
+                }
+            });
+        } catch (error) {
+            console.error('Error updating job status:', error);
+        }
     }, []);
 
     const handleLabelClick = useCallback((e, jobId) => {
@@ -133,9 +165,10 @@ const JobBoard = () => {
                 const jobIndex = updatedJobs[columnName].findIndex(job => job.jobId === jobId);
                 if (jobIndex !== -1) {
                     const job = updatedJobs[columnName][jobIndex];
-                    updatedJobs[columnName].splice(jobIndex, 1);
-                    job.jobStatus = newStatus;
-                    updatedJobs[newStatus.description.toLowerCase()].push(job);
+                    updatedJobs[columnName][jobIndex] = {
+                        ...job,
+                        jobStatus: newStatus
+                    };
                 }
             });
             return updatedJobs;
@@ -146,9 +179,8 @@ const JobBoard = () => {
         }
     }, []);
 
-
     const handleCreateJob = useCallback(() => {
-        setSelectedJob(null); // Set to null for creating a new job
+        setSelectedJob(null);
         setIsJobModalOpen(true);
     }, []);
 
@@ -179,7 +211,6 @@ const JobBoard = () => {
         closeJobModal();
     }, [closeJobModal]);
 
-
     const generateColor = useCallback((initials) => {
         const colors = [
             '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
@@ -200,17 +231,17 @@ const JobBoard = () => {
     }, []);
 
     const sortedJobs = useMemo(() => {
-        return Object.entries(filteredJobs).reduce((acc, [columnName, jobs]) => {
-            const sorted = [...jobs].sort((a, b) => {
+        return Object.entries(filteredJobs).reduce((acc, [columnName, columnJobs]) => {
+            const sorted = [...columnJobs].sort((a, b) => {
                 switch (sortOption[columnName]) {
                     case 'oldest':
                         return new Date(a.createdAt) - new Date(b.createdAt);
                     case 'newest':
                         return new Date(b.createdAt) - new Date(a.createdAt);
-                    // You might need to adjust these based on your actual job data structure
                     case 'highest':
+                        return (b.invoiceAmount || 0) - (a.invoiceAmount || 0);
                     case 'lowest':
-                        return 0; // Implement if you have a relevant field for this
+                        return (a.invoiceAmount || 0) - (b.invoiceAmount || 0);
                     default:
                         return 0;
                 }
@@ -219,7 +250,6 @@ const JobBoard = () => {
             return acc;
         }, {});
     }, [filteredJobs, sortOption]);
-
 
     const renderJobCard = useCallback((job, provided) => (
         <div
@@ -230,23 +260,20 @@ const JobBoard = () => {
             onClick={() => openJobModal(job)}
         >
             <div className="flex justify-between items-center mb-2">
-        <span
-            className={`text-white text-xs font-semibold px-2 py-0.5 rounded cursor-pointer hover:opacity-80 transition-opacity duration-300`}
-            style={{backgroundColor: job.jobStatus.color}}
-            onClick={(e) => handleLabelClick(e, job.jobId)}
-        >
-          {job.jobStatus.description}
-        </span>
+                <span
+                    className="text-white text-xs font-semibold px-2 py-0.5 rounded cursor-pointer hover:opacity-80 transition-opacity duration-300"
+                    style={{backgroundColor: job.jobStatus.color}}
+                    onClick={(e) => handleLabelClick(e, job.jobId)}
+                >
+                    {job.jobStatus.title}
+                </span>
                 <span className="text-xs font-small text-blue-600">#{job.jobId}</span>
             </div>
-            <div
-                className="text-sm font-semibold mb-1 text-gray-800">{job.customer ? job.customer.name : 'N/A'}</div>
+            <div className="text-sm font-semibold mb-1 text-gray-800">
+                {job.customer ? `${job.customer.firstName} ${job.customer.lastName}` : 'N/A'}
+            </div>
             <div className="text-xs text-gray-600 mb-2 flex items-center">
-                <svg className="w-3 h-3 mr-1" fill="none" strokeLinecap="round" strokeLinejoin="round"
-                     strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                </svg>
+                <FaCar className="text-gray-600 mr-1"/>
                 {job.vehicle ? `${job.vehicle.make} ${job.vehicle.model} (${job.vehicle.rego})` : 'N/A'}
             </div>
             <div className="flex justify-between items-center">
@@ -336,9 +363,11 @@ const JobBoard = () => {
                                         </div>
                                         <div className="flex-1 overflow-y-auto p-2 space-y-2">
                                             {columnJobs.map((job, index) => (
-                                                <Draggable key={job.id} draggableId={job.id} index={index}>
+
+                                                <Draggable key={job.jobId} draggableId={job.jobId.toString()} index={index}>
                                                     {(provided) => renderJobCard(job, provided)}
                                                 </Draggable>
+
                                             ))}
                                             {provided.placeholder}
                                         </div>
