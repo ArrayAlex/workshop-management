@@ -58,6 +58,13 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
         setVehicles(getVehicles);
     }, []);
 
+    const LoadingSpinner = () => (
+        <div className="flex justify-center items-center py-6">
+            {/* Loading Spinner */}
+            <div className="animate-spin border-t-4 border-blue-500 border-solid w-10 h-10 rounded-full"></div>
+        </div>
+    );
+
     const fetchData = async () => {
         setIsLoading(true);
         try {
@@ -76,7 +83,23 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
     //technicians = [], customers = [], vehicles = []
 
     const getTechnicians = async (e) => {
-        // const response = await axiosInstance.get('')
+        try {
+            const response = await axiosInstance.get('/technician/technicians');
+            if (response.status === 200) {
+                // console.log('Fetched technicians:', response.data); // Debugging
+                const technicianOptions = response.data.map(technician => ({
+                    value: technician.id, // Use the ID as the value
+                    label: `${technician.name} ` // Combine first and last name
+                }));
+                setTechnicians(technicianOptions); // Set options for the dropdown
+            } else {
+                console.error("Failed to fetch customers");
+                setTechnicians([]);
+            }
+        } catch (error) {
+            console.error("Error fetching customers:", error);
+            setTechnicians([]);
+        }
     }
 
     const getCustomers = async () => {
@@ -132,7 +155,43 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
         onClose();
     };
 
-    if (isLoading) return null;
+    if (isLoading) return (
+        <Modal
+            isOpen={isOpen}
+            onRequestClose={onClose}
+            contentLabel="Job Details"
+            style={{
+                content: {
+                    top: '50%',
+                    left: '50%',
+                    right: 'auto',
+                    bottom: 'auto',
+                    marginRight: '-50%',
+                    transform: 'translate(-50%, -50%)',
+                    padding: '0',
+                    border: 'none',
+                    borderRadius: '0.5rem',
+                    maxWidth: '80vw',
+                    width: '100%',
+                    maxHeight: '90vh',
+                    overflow: 'visible',
+                },
+                overlay: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                    zIndex: 1000,
+                },
+            }}
+        >
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl">
+                <div className="bg-blue-600 text-white px-6 py-4 flex justify-between items-center">
+                    <h2 className="text-2xl font-bold">Loading Job Details...</h2>
+                </div>
+                <div className="p-6 max-h-[calc(90vh-8rem)] overflow-y-auto">
+                    <LoadingSpinner />
+                </div>
+            </div>
+        </Modal>
+    );
 
     const customStyles = {
         content: {
@@ -246,17 +305,15 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                             </div>
                         </div>
                         <div className="space-y-4">
-                            {technicians.length > 0 && (
-                                <div>
-                                    <label className="form-label">Technician</label>
-                                    <Select
-                                        options={technicians}
-                                        value={technicians.find(t => t.value === localJob.technicianId) || null}
-                                        onChange={(option) => handleSelectChange(option, 'technicianId')}
-                                        styles={selectStyles}
-                                    />
-                                </div>
-                            )}
+                            <div>
+                                <label className="form-label">Technician</label>
+                                <Select
+                                    options={technicians} // Vehicle options
+                                    value={technicians.find(technician => technician.value === localJob.technicianId) || null} // Find and set selected value
+                                    onChange={(option) => handleSelectChange(option, 'technicianId')} // Update vehicleId on change
+                                    styles={selectStyles} // Apply custom styles
+                                />
+                            </div>
                             {localJob.jobStatus && localJob.jobStatus.title && (
                                 <div>
                                     <label className="form-label">Job Status</label>
