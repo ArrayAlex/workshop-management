@@ -4,6 +4,7 @@ import JobModal from '../JobModal/JobsModal';
 import axiosInstance from "../../api/axiosInstance";
 import {Helmet} from 'react-helmet';
 import { FaCar } from 'react-icons/fa';
+import AssignedToDropdown from './AssignedToDropdown';
 
 const labels = [
     {name: 'Appt Confirmed', color: 'bg-red-500'},
@@ -40,6 +41,7 @@ const JobBoard = () => {
     const [selectedJob, setSelectedJob] = useState(null);
     const labelDropdownRef = useRef(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [selectedTechnician, setSelectedTechnician] = useState(0);
     const fetchJobs = useCallback(async () => {
         try {
             const response = await axiosInstance.get('/Job/jobs');
@@ -77,22 +79,28 @@ const JobBoard = () => {
         'completed': 'newest'
     });
     const filteredJobs = useMemo(() => {
-
         const lowercasedSearchTerm = searchTerm.toLowerCase();
+
         return Object.entries(jobs).reduce((acc, [columnName, columnJobs]) => {
-            acc[columnName] = columnJobs.filter(job =>
-                // Check job status description
-                (job.jobStatus && job.jobStatus.description && job.jobStatus.description.toLowerCase().includes(lowercasedSearchTerm)) ||
-                // Check job ID
-                job.jobId.toString().includes(lowercasedSearchTerm) ||
-                // Check customer name
-                (job.customer && job.customer.name && job.customer.name.toLowerCase().includes(lowercasedSearchTerm)) ||
-                // Check vehicle rego
-                (job.vehicle && job.vehicle.rego && job.vehicle.rego.toLowerCase().includes(lowercasedSearchTerm))
-            );
+            acc[columnName] = columnJobs.filter(job => {
+                // First apply technician filter
+                const matchesTechnician = selectedTechnician === 0 || selectedTechnician === -2 ||
+                    (selectedTechnician === -1 && job.technician?.isCurrentUser) ||
+                    job.technician?.id === selectedTechnician;
+
+                if (!matchesTechnician) return false;
+
+                // Then apply search filter
+                return (
+                    (job.jobStatus?.description?.toLowerCase().includes(lowercasedSearchTerm)) ||
+                    job.jobId.toString().includes(lowercasedSearchTerm) ||
+                    (job.customer?.name?.toLowerCase().includes(lowercasedSearchTerm)) ||
+                    (job.vehicle?.rego?.toLowerCase().includes(lowercasedSearchTerm))
+                );
+            });
             return acc;
         }, {});
-    }, [jobs, searchTerm]);
+    }, [jobs, searchTerm, selectedTechnician]);
 
     const handleSearchChange = (e) => {
 
@@ -104,28 +112,22 @@ const JobBoard = () => {
     const handleDragEnd = useCallback(async (result) => {
         const { source, destination, draggableId } = result;
 
-        // Return if dropped outside or in the same position
         if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
             return;
         }
 
-        // Create deep copy of current jobs state
         const newJobs = JSON.parse(JSON.stringify(jobs));
 
-        // Remove from source
         const [movedJob] = newJobs[source.droppableId].splice(source.index, 1);
 
-        // Update job's board ID
         const newBoardId = destination.droppableId === 'to-do' ? 0
             : destination.droppableId === 'in-progress' ? 1
                 : 2;
 
         movedJob.jobBoardID = newBoardId;
 
-        // Get the destination column jobs
         const destJobs = newJobs[destination.droppableId];
 
-        // Sort function based on current sort option
         const getSortedIndex = (job, jobs, sortOption) => {
             return jobs.findIndex(existingJob => {
                 switch (sortOption) {
@@ -206,26 +208,18 @@ const JobBoard = () => {
                 });
             });
 
-            // Compare current UI state with server state
             const currentStateStr = JSON.stringify(newJobs);
             const serverStateStr = JSON.stringify(categorizedJobs);
-
-            // Only update if there are differences besides the drag we just did
             if (currentStateStr !== serverStateStr) {
-                // Create a merged state that preserves our drag but gets other updates
                 const mergedJobs = JSON.parse(JSON.stringify(categorizedJobs));
 
-                // Ensure our dragged item stays where we put it
                 const draggedItem = newJobs[destination.droppableId][finalIndex];
 
-                // Find and remove the item from wherever it is in the server state
                 Object.keys(mergedJobs).forEach(column => {
                     mergedJobs[column] = mergedJobs[column].filter(
                         job => job.jobId !== draggedItem.jobId
                     );
                 });
-
-                // Put it in the correct sorted position
                 const newSortedIndex = getSortedIndex(draggedItem, mergedJobs[destination.droppableId], sortOption[destination.droppableId]);
                 const newFinalIndex = newSortedIndex === -1 ? mergedJobs[destination.droppableId].length : newSortedIndex;
                 mergedJobs[destination.droppableId].splice(newFinalIndex, 0, draggedItem);
@@ -234,7 +228,6 @@ const JobBoard = () => {
             }
         } catch (error) {
             console.error('Error updating job status:', error);
-            // On backend error, revert to original state
             fetchJobs();
         }
     }, [jobs, fetchJobs, sortOption]);
@@ -280,6 +273,10 @@ const JobBoard = () => {
         setIsJobModalOpen(true); // Open the modal
     }, []);
 
+    const handleTechnicianChange = useCallback((techId) => {
+        setSelectedTechnician(techId);
+    }, []);
+
     const openJobModal = useCallback((job, event) => {
         if (event) {
             event.stopPropagation(); // Prevent triggering the label dropdown
@@ -297,21 +294,6 @@ const JobBoard = () => {
         setRefreshTrigger(prev => prev + 1); // Trigger refresh when modal closes
     }, []);
 
-    // const handleJobUpdate = useCallback((updatedJob) => {
-    //     setJobs(prevJobs => {
-    //         const newJobs = {...prevJobs};
-    //         Object.keys(newJobs).forEach(columnName => {
-    //             const jobIndex = newJobs[columnName].findIndex(job => job.jobId === updatedJob.jobId);
-    //             if (jobIndex !== -1) {
-    //                 newJobs[columnName][jobIndex] = updatedJob;
-    //             }
-    //         });
-    //         return newJobs;
-    //     });
-    //     setRefreshTrigger(prev => prev + 1); // Trigger refresh after update
-    //     closeJobModal();
-    // }, [closeJobModal]);
-
     const generateColor = useCallback((initials) => {
         const colors = [
             '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
@@ -320,8 +302,6 @@ const JobBoard = () => {
         const colorIndex = initials.charCodeAt(0) % colors.length;
         return colors[colorIndex];
     }, []);
-
-
 
     const handleSort = useCallback((columnName, option) => {
         setSortOption(prev => ({...prev, [columnName]: option}));
@@ -412,7 +392,16 @@ const JobBoard = () => {
                         <h1 className="text-2xl font-bold text-gray-500">Job Board</h1>
                         <div
                             className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 w-full md:w-auto">
+
                             <div className="relative">
+                                <AssignedToDropdown
+                                    onTechnicianChange={handleTechnicianChange}
+                                />
+                            </div>
+
+                            <div className="relative">
+
+
                                 <input
                                     type="text"
                                     placeholder="Search job #ID or rego..."
@@ -489,8 +478,6 @@ const JobBoard = () => {
                     isOpen={isJobModalOpen}
                     onClose={closeJobModal}
                     job={selectedJob}
-
-                    // Pass other necessary props like technicians, customers, vehicles
                 />
             )}
             <div
@@ -512,6 +499,5 @@ const JobBoard = () => {
         </div>
     );
 };
-
 
 export default React.memo(JobBoard);

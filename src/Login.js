@@ -49,6 +49,7 @@ const Login = ({ setIsAuthenticated }) => {
                 localStorage.setItem('newUser', response.data.newUser);
                 localStorage.setItem('jobStatuses', JSON.stringify(response.data.jobStatuses));
                 localStorage.setItem('jobTypes', JSON.stringify(response.data.jobTypes));
+                localStorage.setItem('userid', JSON.stringify(response.data.userid));
 
                 // Update the authentication state in App
                 setIsAuthenticated(true);

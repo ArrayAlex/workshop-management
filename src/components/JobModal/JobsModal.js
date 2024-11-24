@@ -28,8 +28,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
 
     useEffect(() => {
         if (job) {
-            console.log('job.jobType ' + job.jobType);
-            console.log('job.jobStatus  ' + job.jobStatus);
+
             setLocalJob({
                 jobId: job.jobId || null,
                 customerId: job.customerId || null,
@@ -43,8 +42,6 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                 createdBy: job.createdBy || null
             });
         } else {
-            console.log('job.jobType ');
-            console.log('job.jobStatus  ');
             setLocalJob({
                 jobId: null,
                 customerId: null,
@@ -152,8 +149,6 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
             jobTypeId: job.jobType?.id || null,      // Extract just the ID
             createdBy: job.createdBy
         };
-
-        console.log("Sending job data:", transformedJob); // Log the transformed job data
 
         try {
             const response = await axiosInstance.post('/job/add', transformedJob, {
