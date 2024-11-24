@@ -19,6 +19,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
         updatedAt: job ? (job.updatedAt ? new Date(job.updatedAt) : null) : null,
         createdAt: job ? (job.createdAt ? new Date(job.createdAt) : null) : null,
         createdBy: job ? job.createdBy : null,
+        hours_worked: job ? job.hours_worked : null,
     });
 
     const [technicians, setTechnicians] = useState([]);
@@ -39,7 +40,8 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                 jobType: job.jobType || null,
                 updatedAt: job.updatedAt ? new Date(job.updatedAt) : null,
                 createdAt: job.createdAt ? new Date(job.createdAt) : null,
-                createdBy: job.createdBy || null
+                createdBy: job.createdBy || null,
+                hours_worked: job.hours_worked || null
             });
         } else {
             setLocalJob({
@@ -52,7 +54,8 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                 jobType: null,
                 updatedAt: null,
                 createdAt: null,
-                createdBy: null
+                createdBy: null,
+                hours_worked: null
             });
         }
         setIsLoading(false);
@@ -177,7 +180,8 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
             notes: job.notes,
             JobStatusID: job.jobStatus?.id || null,  // Extract just the ID
             JobTypeID: job.jobType?.id || null,      // Extract just the ID
-            createdBy: job.createdBy
+            createdBy: job.createdBy,
+            hours_worked: job.hours_worked
         };
 
         try {
@@ -487,24 +491,45 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                                     placeholder="Select Job Type"
                                 />
                             </div>
+                            <div>
+                                <label className="form-label">Hours Worked</label>
+                                <textarea
+                                    name="hours_worked"
+                                    value={localJob.hours_worked || ''}
+                                    onChange={handleInputChange}
+                                    rows="1"
+                                    className="form-input"
+                                />
+                            </div>
 
                         </div>
                     </div>
                 </div>
-                <div className="flex justify-end space-x-4 p-4 border-t border-gray-200">
-                    <button
-                        onClick={handleSave}
-                        className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-                    >
-                        Save
-                    </button>
+
+                <div className="flex justify-between items-center space-x-4 p-4 border-t border-gray-200 mt-4">
                     <button
                         onClick={onClose}
-                        className="bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400"
+                        className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-500"
                     >
-                        Cancel
+                        Generate Invoice
                     </button>
+
+                    <div className="flex space-x-4 ml-auto">
+                        <button
+                            onClick={handleSave}
+                            className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-500"
+                        >
+                            {localJob.jobId ? 'Save' : 'Create'}
+                        </button>
+                        <button
+                            onClick={onClose}
+                            className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-500"
+                        >
+                            Cancel
+                        </button>
+                    </div>
                 </div>
+
             </div>
         </Modal>
     );

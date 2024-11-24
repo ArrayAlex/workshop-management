@@ -375,7 +375,9 @@ const JobBoard = () => {
                         </div>
                     )}
                 </div>
-                <div className="text-xs font-medium text-gray-500">{job.invoiceAmount || 'N/A'}</div>
+                <div className="font-small text-gray-500" style={{fontSize: '10px'}}>
+                    ${job.amount || 'N/A'}
+                </div>
             </div>
         </div>
     ), [generateColor, handleLabelClick, openJobModal]);
