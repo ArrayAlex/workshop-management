@@ -1,7 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import Modal from 'react-modal';
 import Select from 'react-select';
-import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import './JobModal.css';
 import axiosInstance from '../../api/axiosInstance';
@@ -29,8 +28,8 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
 
     useEffect(() => {
         if (job) {
-            console.log('job.jobType ' + job.jobType );
-            console.log('job.jobStatus  ' + job.jobStatus  );
+            console.log('job.jobType ' + job.jobType);
+            console.log('job.jobStatus  ' + job.jobStatus);
             setLocalJob({
                 jobId: job.jobId || null,
                 customerId: job.customerId || null,
@@ -44,8 +43,8 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                 createdBy: job.createdBy || null
             });
         } else {
-            console.log('job.jobType ' );
-            console.log('job.jobStatus  '  );
+            console.log('job.jobType ');
+            console.log('job.jobStatus  ');
             setLocalJob({
                 jobId: null,
                 customerId: null,
@@ -62,10 +61,12 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
         setIsLoading(false);
     }, [job]);
 
+
     useEffect(() => {
         if (isOpen) {
-            fetchData();
+            fetchData()
         }
+        // eslint-disable-next-line
     }, [isOpen]);
 
     useEffect(() => {
@@ -95,8 +96,6 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
             setIsLoading(false);
         }
     };
-
-    //technicians = [], customers = [], vehicles = []
 
     const getTechnicians = async (e) => {
         try {
@@ -138,8 +137,6 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
         }
     };
 
-
-
     const jobStatuses = JSON.parse(localStorage.getItem('jobStatuses'));
     const jobTypes = JSON.parse(localStorage.getItem('jobTypes'))
 
@@ -164,8 +161,9 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                     'Content-Type': 'application/json'
                 }
             });
+            // eslint-disable-next-line
             if (response.status == 200) {
-                
+
             }
             return response.data;
         } catch (error) {
@@ -173,7 +171,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
             throw error;
         }
     };
-// Function to update an existing job
+
     const saveJob = async (job) => {
 
         const transformedJob = {
@@ -189,6 +187,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
 
         try {
             const response = await axiosInstance.put('/job/update', transformedJob);
+            // eslint-disable-next-line
             if (response.status == 200) {
                 onClose();
             }
@@ -199,8 +198,6 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
         }
     };
 
-
-// Example usage: Populate dropdown for job statuses
     const statusOptions = Array.isArray(jobStatuses)
         ? jobStatuses.map(status => ({
             value: status.id || null,
@@ -319,7 +316,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                     <h2 className="text-2xl font-bold">Loading Job Details...</h2>
                 </div>
                 <div className="p-6 max-h-[calc(90vh-8rem)] overflow-y-auto">
-                    <LoadingSpinner />
+                    <LoadingSpinner/>
                 </div>
             </div>
         </Modal>
@@ -434,7 +431,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
                             <div>
-                            <label className="form-label">Customer</label>
+                                <label className="form-label">Customer</label>
                                 <Select
                                     options={customers} // Customer options
                                     value={customers.find(customer => customer.value === localJob.customerId) || null} // Find and set selected value
@@ -443,7 +440,7 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                                 />
                             </div>
                             <div>
-                            <label className="form-label">Vehicle</label>
+                                <label className="form-label">Vehicle</label>
                                 <Select
                                     options={vehicles} // Vehicle options
                                     value={vehicles.find(vehicle => vehicle.value === localJob.vehicleId) || null} // Find and set selected value
@@ -496,18 +493,6 @@ const JobModal = ({isOpen, onClose, job, onSave}) => {
                                 />
                             </div>
 
-                            {/*{localJob.createdAt && (*/}
-                            {/*    <div>*/}
-                            {/*        <label className="form-label">Created At</label>*/}
-                            {/*        <p>{localJob.createdAt.toLocaleString()}</p>*/}
-                            {/*    </div>*/}
-                            {/*)}*/}
-                            {/*{localJob.updatedAt && (*/}
-                            {/*    <div>*/}
-                            {/*        <label className="form-label">Updated At</label>*/}
-                            {/*        <p>{localJob.updatedAt.toLocaleString()}</p>*/}
-                            {/*    </div>*/}
-                            {/*)}*/}
                         </div>
                     </div>
                 </div>

@@ -297,20 +297,20 @@ const JobBoard = () => {
         setRefreshTrigger(prev => prev + 1); // Trigger refresh when modal closes
     }, []);
 
-    const handleJobUpdate = useCallback((updatedJob) => {
-        setJobs(prevJobs => {
-            const newJobs = {...prevJobs};
-            Object.keys(newJobs).forEach(columnName => {
-                const jobIndex = newJobs[columnName].findIndex(job => job.jobId === updatedJob.jobId);
-                if (jobIndex !== -1) {
-                    newJobs[columnName][jobIndex] = updatedJob;
-                }
-            });
-            return newJobs;
-        });
-        setRefreshTrigger(prev => prev + 1); // Trigger refresh after update
-        closeJobModal();
-    }, [closeJobModal]);
+    // const handleJobUpdate = useCallback((updatedJob) => {
+    //     setJobs(prevJobs => {
+    //         const newJobs = {...prevJobs};
+    //         Object.keys(newJobs).forEach(columnName => {
+    //             const jobIndex = newJobs[columnName].findIndex(job => job.jobId === updatedJob.jobId);
+    //             if (jobIndex !== -1) {
+    //                 newJobs[columnName][jobIndex] = updatedJob;
+    //             }
+    //         });
+    //         return newJobs;
+    //     });
+    //     setRefreshTrigger(prev => prev + 1); // Trigger refresh after update
+    //     closeJobModal();
+    // }, [closeJobModal]);
 
     const generateColor = useCallback((initials) => {
         const colors = [

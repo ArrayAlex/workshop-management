@@ -11,7 +11,7 @@ import {
     ShoppingCart,
     Package
 } from 'lucide-react';
-import axiosInstance from "../../api/axiosInstance";
+// import axiosInstance from "../../api/axiosInstance";
 
 const CustomerModal = ({isOpen, onClose, customer, onSave}) => {
     // const [customer, setCustomer] = useState(customer || {});
@@ -66,7 +66,7 @@ const CustomerModal = ({isOpen, onClose, customer, onSave}) => {
     const createCustomer = async () => {
         try {
             // Sending formData in the PUT request to create a new customer
-            const response = await axiosInstance.post('/customer/add', formData);
+            // const response = await axiosInstance.post('/customer/add', formData);
             //console.log('Customer created successfully:', response.data);
         } catch (error) {
             //console.error('Error creating customer:', error);
@@ -76,7 +76,7 @@ const CustomerModal = ({isOpen, onClose, customer, onSave}) => {
     const updateCustomer = async () => {
         try {
             // Sending formData in the POST request to update an existing customer
-            const response = await axiosInstance.put('/customer/update', formData);
+            //const response = await axiosInstance.put('/customer/update', formData);
             //console.log('Customer updated successfully:', response.data);
         } catch (error) {
             //console.error('Error updating customer:', error);
