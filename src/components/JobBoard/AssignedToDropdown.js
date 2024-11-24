@@ -1,14 +1,12 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import axiosInstance from '../../api/axiosInstance';
-import {Star, UserCheck2, UserCircle2, Users} from 'lucide-react';
+import {Star, UserCircle2, Users} from 'lucide-react';
 import Select from 'react-select';
-import {MagnifyingGlassCircleIcon} from "@heroicons/react/24/outline";
-import {MagnifyingGlassIcon} from "@heroicons/react/16/solid";
 
 const AssignedToDropdown = ({onTechnicianChange}) => {
     const [technicians, setTechnicians] = useState([]);
     const [selectedTech, setSelectedTech] = useState(0);
-    const [isLoading, setIsLoading] = useState(false);
+
     const [isLocked, setIsLocked] = useState(false);
     const [currentUserId, setCurrentUserId] = useState(null);
 
@@ -27,7 +25,6 @@ const AssignedToDropdown = ({onTechnicianChange}) => {
 
     const fetchTechnicians = useCallback(async () => {
         try {
-            setIsLoading(true);
             const response = await axiosInstance.get('/technician/technicians');
             setTechnicians(response.data);
 
@@ -44,7 +41,6 @@ const AssignedToDropdown = ({onTechnicianChange}) => {
         } catch (error) {
             console.error('Error fetching technicians:', error);
         } finally {
-            setIsLoading(false);
         }
     }, [onTechnicianChange]);
 
@@ -97,7 +93,6 @@ const AssignedToDropdown = ({onTechnicianChange}) => {
     };
 
     const options = [
-        {value: 0, label: 'Assigned to'},
         ...(currentUserId ? [{value: currentUserId, label: '@me'}] : []),
         {value: -2, label: 'All Technicians'},
         ...technicians.map(tech => ({
