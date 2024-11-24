@@ -387,7 +387,7 @@ const InvoiceModal = ({ isOpen, invoice, onClose, onSave }) => {
 
                 <div className="mt-4 flex justify-between items-center">
                     <div className="text-lg font-semibold">
-                        Total: ${calculateTotal().toFixed(2)}
+                        Total: ${invoice.total_amount}
                     </div>
                     <div className="space-x-2">
                         <button
