@@ -23,7 +23,8 @@ const InvoiceModal = ({ isOpen, invoice, onClose, onSave }) => {
         if (invoice) {
             setAdhocEntries(invoice.adhoc);
             setSelectedJobs(invoice.jobs);
-            setCustomerDetails(invoice.customerid)
+            // let invoice.customer.name = invoice.customer.firstName + ' ' + invoice.customer.lastName;
+            setCustomerDetails(invoice.customer)
             setFormData({
                 invoice_date: invoice.invoice_date,
                 customerid: invoice.customerid,
@@ -38,6 +39,7 @@ const InvoiceModal = ({ isOpen, invoice, onClose, onSave }) => {
         }
     }, [invoice]);
 
+    console.log(customerDetails);
     const handleCustomerSearch = async (query) => {
         setCustomerSearch(query);
         if (query.length < 2) {
@@ -261,7 +263,7 @@ const InvoiceModal = ({ isOpen, invoice, onClose, onSave }) => {
 
                 {customerDetails && (
                     <div className="mt-2 p-2 bg-gray-50 rounded">
-                        <p>Selected Customer: {customerDetails.name}</p>
+                        <p>Customer: {customerDetails.name || customerDetails.firstName + ' ' + customerDetails.lastName}</p>
                         <p>Email: {customerDetails.email}</p>
                     </div>
                 )}
