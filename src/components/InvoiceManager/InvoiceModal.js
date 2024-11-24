@@ -319,7 +319,7 @@ const InvoiceModal = ({ isOpen, invoice, onClose, onSave }) => {
                             <div key={job.JobId}
                                  className="flex justify-between items-center p-2 bg-gray-50 rounded border">
                                 <div className="flex-1">
-                                    <div>{job.notes}</div>
+                                    <div>#{job.jobId} | {job.notes}</div>
                                     <div className="text-sm text-gray-600">
                                         <input
                                             type="number"
