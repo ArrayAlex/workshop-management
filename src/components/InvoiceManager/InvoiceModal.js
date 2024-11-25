@@ -23,6 +23,7 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
+    const [jobs, setJobs] = useState([]);
 
 
     console.log(initialData);
@@ -40,8 +41,23 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
     });
 
 
+    const fetchJobs = async () => {
+        try {
+            setLoading(true);
+            const response = await axiosInstance.get(`/job/jobs`);
+            if (!response.ok) throw new Error('Failed to fetch jobs');
+
+            setJobs(response.data); // Ensure jobs are populated here
+        } catch (err) {
+            setError('Failed to load jobs data');
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     useEffect(() => {
+        fetchJobs();
         if (initialData) {
             // Populate form with provided data
             setFormData({
@@ -90,9 +106,10 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
         customer.email.toLowerCase().includes(customerSearch.toLowerCase())
     );
 
-    const filteredJobs = JOBS.filter(job =>
+    const filteredJobs = jobs.filter(job =>
         job.title.toLowerCase().includes(jobSearch.toLowerCase())
     );
+
 
     const removeLineItem = (index) => {
         setLineItems(lineItems.filter((_, i) => i !== index));
@@ -110,7 +127,7 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
             setLoading(true);
             const response = await fetch(`/invoices/${invoiceId}`);
             if (!response.ok) throw new Error('Failed to fetch invoice');
-            const data = await response.json();
+            const data = await response.data();
 
             // Populate form with existing data
             setFormData({
@@ -182,7 +199,7 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
             );
 
             if (!response.ok) {
-                const errorData = await response.json();
+                const errorData = await response.data();
                 throw new Error(errorData.title || 'Failed to save invoice');
             }
 
@@ -441,20 +458,20 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
                                     type="text"
                                     className="p-2 border rounded-md w-64"
                                     placeholder="Search jobs..."
-                                    value={jobSearch}
+                                    value={jobSearch}  // Bind value to the state
                                     onChange={(e) => {
-                                        setJobSearch(e.target.value);
-                                        setShowJobDropdown(true);
+                                        setJobSearch(e.target.value);  // Update jobSearch on change
+                                        setShowJobDropdown(true);  // Show dropdown on input change
                                     }}
-                                    onFocus={() => setShowJobDropdown(true)}
+                                    onFocus={() => setShowJobDropdown(true)}  // Show dropdown when focused
                                 />
-                                {showJobDropdown && (
+                                {showJobDropdown && filteredJobs.length > 0 && (
                                     <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
                                         {filteredJobs.map(job => (
                                             <div
                                                 key={job.id}
                                                 className="p-2 hover:bg-gray-100 cursor-pointer"
-                                                onClick={() => addLineItem(job)}
+                                                onClick={() => addLineItem(job)}  // Select job when clicked
                                             >
                                                 <div className="font-medium">{job.title}</div>
                                                 <div className="text-sm text-gray-500">${job.rate}/hr</div>
