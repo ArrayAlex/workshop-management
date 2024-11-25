@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Search, Trash2, Calendar, DollarSign, FileText, User, Briefcase, AlertCircle } from 'lucide-react';
+import { X, Plus, Trash2,   FileText, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
 import axiosInstance from "../../api/axiosInstance";
-
+import './InvoiceModal.css';
 const CUSTOMERS = [
     { id: 1, name: 'Acme Corp', email: 'billing@acme.com' },
     { id: 2, name: 'Wayne Enterprises', email: 'accounts@wayne.com' },
     { id: 3, name: 'Stark Industries', email: 'billing@stark.com' },
-];
-
-const JOBS = [
-    { id: 1, title: 'Website Redesign', rate: 150 },
-    { id: 2, title: 'Mobile App Development', rate: 200 },
-    { id: 3, title: 'SEO Optimization', rate: 100 },
-    { id: 4, title: 'Cloud Migration', rate: 175 },
 ];
 
 const STATUS_OPTIONS = ['Draft', 'Pending', 'Paid', 'Overdue', 'Cancelled'];
@@ -73,6 +66,7 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
         } else if (invoiceId) {
             fetchInvoiceData();
         }
+        // eslint-disable-next-line
     }, [invoiceId, initialData]);
 
     const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -83,15 +77,7 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
     const [showJobDropdown, setShowJobDropdown] = useState(false);
     const [adhocItem, setAdhocItem] = useState({ description: '', rate: '', hours: '', type: 'service' });
 
-    const handleCustomerSelect = (customer) => {
-        setSelectedCustomer(customer); // Set the selected customer object
-        setCustomerSearch(customer.name); // Display the selected customer's name
-        setFormData((prevData) => ({
-            ...prevData,
-            customerId: customer.id, // Set only the customerId in the formData
-        }));
-        setShowCustomerDropdown(false);
-    };
+
 
     const filteredCustomers = CUSTOMERS.filter(customer =>
         customer.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
@@ -112,6 +98,7 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
         if (invoiceId) {
             fetchInvoiceData();
         }
+        // eslint-disable-next-line
     }, [invoiceId]);
 
     const fetchInvoiceData = async () => {
@@ -222,7 +209,7 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
     };
 
     const calculateTotal = () => {
-        return calculateSubtotal() + calculateTax() - calculateDiscount();
+        return calculateSubtotal() - calculateDiscount() + calculateTax() ;
     };
 
     const addLineItem = (job) => {
@@ -259,7 +246,8 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] overflow-y-auto">
                 <div className="p-6 space-y-6">
                     {/* Header */}

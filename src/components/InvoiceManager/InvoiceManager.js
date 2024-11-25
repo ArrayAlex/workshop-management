@@ -14,7 +14,7 @@ const InvoiceTable = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortField, setSortField] = useState('invoiceNumber');
     const [sortDirection, setSortDirection] = useState('asc');
-    const [modalOpen, setModalOpen] = useState(false);
+    // const [modalOpen, setModalOpen] = useState(false);
 
     const [success, setSuccess] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -142,7 +142,7 @@ const InvoiceTable = () => {
                 <button
                     onClick={() => {
                         setSelectedInvoice(null);
-                        setModalOpen(true);
+
                     }}
                     className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
                 >
@@ -294,7 +294,7 @@ const InvoiceTable = () => {
                 </div>
             </div>
 
-            {/* Invoice Modal */}
+
             <InvoiceModal
                 isOpen={isModalOpen}
                 onClose={() => {
