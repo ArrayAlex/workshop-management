@@ -44,10 +44,8 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
     const fetchJobs = async () => {
         try {
             setLoading(true);
-            const response = await axiosInstance.get(`/job/jobs`);
-            if (!response.ok) throw new Error('Failed to fetch jobs');
-
-            setJobs(response.data); // Ensure jobs are populated here
+            const response = await axiosInstance.get('/job/jobs');
+            setJobs(response.data);
         } catch (err) {
             setError('Failed to load jobs data');
         } finally {
@@ -59,7 +57,6 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
     useEffect(() => {
         fetchJobs();
         if (initialData) {
-            // Populate form with provided data
             setFormData({
                 invoice_id: initialData.invoice_id || null,
                 invoiceNumber: initialData.invoiceNumber,
@@ -70,14 +67,9 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
                 notes: initialData.notes,
                 taxRate: initialData.taxRate || 0,
                 discount: initialData.discount || 0,
-                customerId: initialData.customer.id || null
+                customerId: initialData.customer?.id || null
             });
-            // Update the customer search field with the customer name
-            const customer = CUSTOMERS.find(c => c.id === initialData.customerId);
-            if (customer) {
-                setCustomerSearch(customer.name);  // Show customer name in search field
-            }
-            setLineItems(initialData.lineItems);
+            setLineItems(initialData.lineItems || []);
         } else if (invoiceId) {
             fetchInvoiceData();
         }
@@ -107,7 +99,8 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
     );
 
     const filteredJobs = jobs.filter(job =>
-        job.title.toLowerCase().includes(jobSearch.toLowerCase())
+        job.notes.toLowerCase().includes(jobSearch.toLowerCase()) ||
+        job.jobType.title.toLowerCase().includes(jobSearch.toLowerCase())
     );
 
 
@@ -170,9 +163,10 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
                 notes: formData.notes,
                 taxRate: formData.taxRate,
                 discount: formData.discount,
-                customerId: formData.customerId,  // This will be just the customerId
+                customerId: formData.customerId,
                 lineItems: lineItems.map(item => ({
                     id: typeof item.id === 'string' ? 0 : item.id,
+                    itemId: item.itemId, // Include itemId in the saved data
                     title: item.title,
                     rate: item.rate,
                     hours: item.hours,
@@ -232,7 +226,18 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
     };
 
     const addLineItem = (job) => {
-        setLineItems([...lineItems, { ...job, hours: 0, type: 'service' }]);
+        const newLineItem = {
+            id: null,
+            itemId: job.jobId, // Add the jobId as itemId
+            jobId: job.jobId,
+            title: 'Job #' + job.jobId,
+            rate: job.amount / job.hours_worked,
+            hours: job.hours_worked,
+            type: 'Job',
+            amount: job.amount
+        };
+
+        setLineItems([...lineItems, newLineItem]);
         setJobSearch('');
         setShowJobDropdown(false);
     };
@@ -241,12 +246,13 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
         if (adhocItem.description && adhocItem.rate && adhocItem.hours) {
             setLineItems([...lineItems, {
                 id: `${Date.now()}`,
+                itemId: null, // Ad-hoc items don't have an itemId
                 title: adhocItem.description,
                 rate: parseFloat(adhocItem.rate),
                 hours: parseFloat(adhocItem.hours),
                 type: adhocItem.type
             }]);
-            setAdhocItem({ description: '', rate: '', hours: '', type: 'service' });
+            setAdhocItem({ description: '', rate: '', hours: '', type: 'service', itemId: null });
         }
     };
 
@@ -458,23 +464,26 @@ const InvoiceModal = ({ isOpen, onClose, invoiceId = null, initialData = null })
                                     type="text"
                                     className="p-2 border rounded-md w-64"
                                     placeholder="Search jobs..."
-                                    value={jobSearch}  // Bind value to the state
+                                    value={jobSearch}
                                     onChange={(e) => {
-                                        setJobSearch(e.target.value);  // Update jobSearch on change
-                                        setShowJobDropdown(true);  // Show dropdown on input change
+                                        setJobSearch(e.target.value);
+                                        setShowJobDropdown(true);
                                     }}
-                                    onFocus={() => setShowJobDropdown(true)}  // Show dropdown when focused
+                                    onFocus={() => setShowJobDropdown(true)}
                                 />
                                 {showJobDropdown && filteredJobs.length > 0 && (
-                                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
+                                    <div
+                                        className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-48 overflow-y-auto">
                                         {filteredJobs.map(job => (
                                             <div
-                                                key={job.id}
+                                                key={job.jobId}
                                                 className="p-2 hover:bg-gray-100 cursor-pointer"
-                                                onClick={() => addLineItem(job)}  // Select job when clicked
+                                                onClick={() => addLineItem(job)}
                                             >
-                                                <div className="font-medium">{job.title}</div>
-                                                <div className="text-sm text-gray-500">${job.rate}/hr</div>
+                                                <div className="font-medium">Job #{job.jobId}</div>
+                                                <div className="text-sm text-gray-500">
+                                                    ${job.amount} - {job.hours_worked} hours - {job.jobType.title}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
