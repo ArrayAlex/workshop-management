@@ -22,11 +22,9 @@ const Login = ({ setIsAuthenticated }) => {
         }
     };
 
-    // Check authentication status when component is mounted
     useEffect(() => {
         setIsLoading(true);
 
-        // Check if the user is already authenticated from localStorage
         if (localStorage.getItem('userPlan')) {
             setIsAuthenticated(true);
             navigate('/dashboard'); // Redirect to dashboard if logged in
@@ -35,6 +33,7 @@ const Login = ({ setIsAuthenticated }) => {
         }
 
         setIsLoading(false);
+        // eslint-disable-next-line
     }, [setIsAuthenticated, navigate]);
 
     const handleSubmit = async (e) => {
@@ -49,6 +48,7 @@ const Login = ({ setIsAuthenticated }) => {
                 localStorage.setItem('newUser', response.data.newUser);
                 localStorage.setItem('jobStatuses', JSON.stringify(response.data.jobStatuses));
                 localStorage.setItem('jobTypes', JSON.stringify(response.data.jobTypes));
+                localStorage.setItem('userid', JSON.stringify(response.data.userid));
 
                 // Update the authentication state in App
                 setIsAuthenticated(true);

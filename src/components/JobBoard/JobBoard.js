@@ -4,6 +4,7 @@ import JobModal from '../JobModal/JobsModal';
 import axiosInstance from "../../api/axiosInstance";
 import {Helmet} from 'react-helmet';
 import { FaCar } from 'react-icons/fa';
+import AssignedToDropdown from './AssignedToDropdown';
 
 const labels = [
     {name: 'Appt Confirmed', color: 'bg-red-500'},
@@ -12,9 +13,9 @@ const labels = [
     {name: 'Called Customer', color: 'bg-blue-500'},
 ];
 
+const handleDragStart = (start) => {
 
-/*const labels = JSON.parse(localStorage.getItem('jobStatuses'));*/
-
+};
 const useClickOutside = (ref, callback) => {
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -35,44 +36,35 @@ const JobBoard = () => {
         'in-progress': [],
         'completed': []
     });
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState(''); // Track search input
     const [isJobModalOpen, setIsJobModalOpen] = useState(false);
     const [selectedJob, setSelectedJob] = useState(null);
     const labelDropdownRef = useRef(null);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [selectedTechnician, setSelectedTechnician] = useState(0);
+    const fetchJobs = useCallback(async () => {
+        try {
+            const response = await axiosInstance.get('/Job/jobs');
+            const fetchedJobs = response.data;
+
+            const categorizedJobs = fetchedJobs.reduce((acc, job) => {
+                const column = job.jobBoardID === 0 ? 'to-do' :
+                    job.jobBoardID === 1 ? 'in-progress' :
+                        job.jobBoardID === 2 ? 'completed' : 'to-do';
+                acc[column].push(job);
+                return acc;
+            }, { 'to-do': [], 'in-progress': [], 'completed': [] });
+
+            setJobs(categorizedJobs);
+        } catch (error) {
+            console.error('Error fetching jobs:', error);
+        }
+    }, []);
 
     useEffect(() => {
-        const fetchJobs = async () => {
-            try {
-                const response = await axiosInstance.get('/Job/jobs');
-                const fetchedJobs = response.data;
-
-                // Categorize jobs based on their jobBoardID
-                const categorizedJobs = fetchedJobs.reduce((acc, job) => {
-                    switch (job.jobBoardID) {
-                        case 0:
-                            acc['to-do'].push(job);
-                            break;
-                        case 1:
-                            acc['in-progress'].push(job);
-                            break;
-                        case 2:
-                            acc['completed'].push(job);
-                            break;
-                        default:
-                            // Default to 'to-do' for any other status
-                            acc['to-do'].push(job);
-                    }
-                    return acc;
-                }, { 'to-do': [], 'in-progress': [], 'completed': [] });
-
-                setJobs(categorizedJobs);
-            } catch (error) {
-                console.error('Error fetching jobs:', error);
-            }
-        };
-
         fetchJobs();
-    }, []);
+    }, [fetchJobs, refreshTrigger]);
+
 
     useClickOutside(labelDropdownRef, () => {
         if (labelDropdownRef.current) {
@@ -81,70 +73,164 @@ const JobBoard = () => {
         }
     });
 
+    const [sortOption, setSortOption] = useState({
+        'to-do': 'newest',
+        'in-progress': 'newest',
+        'completed': 'newest'
+    });
     const filteredJobs = useMemo(() => {
         const lowercasedSearchTerm = searchTerm.toLowerCase();
+
         return Object.entries(jobs).reduce((acc, [columnName, columnJobs]) => {
-            acc[columnName] = columnJobs.filter(job =>
-                (job.jobStatus && job.jobStatus.description && job.jobStatus.description.toLowerCase().includes(lowercasedSearchTerm)) ||
-                job.jobId.toString().includes(lowercasedSearchTerm) ||
-                (job.customer && job.customer.name && job.customer.name.toLowerCase().includes(lowercasedSearchTerm))
-            );
+            acc[columnName] = columnJobs.filter(job => {
+                // First apply technician filter
+                const matchesTechnician = selectedTechnician === 0 || selectedTechnician === -2 ||
+                    (selectedTechnician === -1 && job.technician?.isCurrentUser) ||
+                    job.technician?.id === selectedTechnician;
+
+                if (!matchesTechnician) return false;
+
+                // Then apply search filter
+                return (
+                    (job.jobStatus?.description?.toLowerCase().includes(lowercasedSearchTerm)) ||
+                    job.jobId.toString().includes(lowercasedSearchTerm) ||
+                    (job.customer?.name?.toLowerCase().includes(lowercasedSearchTerm)) ||
+                    (job.vehicle?.rego?.toLowerCase().includes(lowercasedSearchTerm))
+                );
+            });
             return acc;
         }, {});
-    }, [jobs, searchTerm]);
+    }, [jobs, searchTerm, selectedTechnician]);
+
+    const handleSearchChange = (e) => {
+
+        setSearchTerm(e.target.value);
+    };
+
+
 
     const handleDragEnd = useCallback(async (result) => {
-        const { source, destination } = result;
-        if (!destination) return; // Don't do anything if dropped outside
+        const { source, destination, draggableId } = result;
 
-        const sourceColumn = source.droppableId;
-        const destColumn = destination.droppableId;
+        if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
+            return;
+        }
 
-        // Adjust jobBoardID based on the destination column
-        const jobBoardIDMap = {
-            'to-do': 0,
-            'in-progress': 1,
-            'completed': 2
-        };
+        const newJobs = JSON.parse(JSON.stringify(jobs));
 
-        const newJobBoardID = jobBoardIDMap[destColumn];
+        const [movedJob] = newJobs[source.droppableId].splice(source.index, 1);
 
-        // Optimistically update state for the drag action
-        setJobs(prevJobs => {
-            const newJobs = { ...prevJobs };
-            const sourceJobs = [...newJobs[sourceColumn]];
-            const destJobs = destColumn === sourceColumn ? sourceJobs : [...newJobs[destColumn]];
+        const newBoardId = destination.droppableId === 'to-do' ? 0
+            : destination.droppableId === 'in-progress' ? 1
+                : 2;
 
-            // Get the job being moved
-            const [removed] = sourceJobs.splice(source.index, 1);
+        movedJob.jobBoardID = newBoardId;
 
-            // Update jobBoardID
-            const updatedJob = {
-                ...removed,
-                jobBoardID: newJobBoardID,
-            };
+        const destJobs = newJobs[destination.droppableId];
 
-            destJobs.splice(destination.index, 0, updatedJob);
+        const getSortedIndex = (job, jobs, sortOption) => {
+            return jobs.findIndex(existingJob => {
+                switch (sortOption) {
+                    case 'newest':
+                        const dateCompare = new Date(existingJob.updatedAt) - new Date(job.updatedAt);
+                        return dateCompare < 0 || (dateCompare === 0 && existingJob.jobId < job.jobId);
 
-            newJobs[sourceColumn] = sourceJobs;
-            if (sourceColumn !== destColumn) {
-                newJobs[destColumn] = destJobs;
-            }
+                    case 'oldest':
+                        const oldestDateCompare = new Date(existingJob.updatedAt) - new Date(job.updatedAt);
+                        return oldestDateCompare > 0 || (oldestDateCompare === 0 && existingJob.jobId < job.jobId);
 
-            return newJobs;
-        });
+                    case 'highest':
+                        return (existingJob.invoiceAmount || 0) < (job.invoiceAmount || 0);
 
-        // Make the PUT request with just the integer value for jobBoardID
-        try {
-            await axiosInstance.put(`/Job/jobboardid/${result.draggableId}`, newJobBoardID, {
-                headers: {
-                    'Content-Type': 'application/json' // Ensure this header is set
+                    case 'lowest':
+                        return (existingJob.invoiceAmount || 0) > (job.invoiceAmount || 0);
+
+                    default:
+                        const defaultDateCompare = new Date(existingJob.updatedAt) - new Date(job.updatedAt);
+                        return defaultDateCompare < 0 || (defaultDateCompare === 0 && existingJob.jobId < job.jobId);
                 }
             });
+        };
+
+        // Find the correct sorted position
+        const sortedIndex = getSortedIndex(movedJob, destJobs, sortOption[destination.droppableId]);
+        const finalIndex = sortedIndex === -1 ? destJobs.length : sortedIndex;
+
+        // Insert at the sorted position
+        newJobs[destination.droppableId].splice(finalIndex, 0, movedJob);
+
+        // Immediately update UI
+        setJobs(newJobs);
+
+        try {
+            // Quietly update backend
+            await axiosInstance.put(
+                `/Job/jobboardid/${draggableId}`,
+                newBoardId,
+                { headers: { 'Content-Type': 'application/json' }}
+            );
+
+            // Silently fetch latest data in background
+            const response = await axiosInstance.get('/Job/jobs');
+            const fetchedJobs = response.data;
+
+            // Only update state if there are meaningful differences
+            const categorizedJobs = fetchedJobs.reduce((acc, job) => {
+                const column = job.jobBoardID === 0 ? 'to-do' :
+                    job.jobBoardID === 1 ? 'in-progress' :
+                        job.jobBoardID === 2 ? 'completed' : 'to-do';
+                acc[column].push(job);
+                return acc;
+            }, { 'to-do': [], 'in-progress': [], 'completed': [] });
+
+            // Sort each column in categorizedJobs
+            Object.keys(categorizedJobs).forEach(columnName => {
+                categorizedJobs[columnName].sort((a, b) => {
+                    switch (sortOption[columnName]) {
+                        case 'newest':
+                            const dateCompare = new Date(b.updatedAt) - new Date(a.updatedAt);
+                            return dateCompare === 0 ? b.jobId - a.jobId : dateCompare;
+
+                        case 'oldest':
+                            const oldestDateCompare = new Date(a.updatedAt) - new Date(b.updatedAt);
+                            return oldestDateCompare === 0 ? b.jobId - a.jobId : oldestDateCompare;
+
+                        case 'highest':
+                            return (b.invoiceAmount || 0) - (a.invoiceAmount || 0);
+
+                        case 'lowest':
+                            return (a.invoiceAmount || 0) - (b.invoiceAmount || 0);
+
+                        default:
+                            const defaultDateCompare = new Date(b.updatedAt) - new Date(a.updatedAt);
+                            return defaultDateCompare === 0 ? b.jobId - a.jobId : defaultDateCompare;
+                    }
+                });
+            });
+
+            const currentStateStr = JSON.stringify(newJobs);
+            const serverStateStr = JSON.stringify(categorizedJobs);
+            if (currentStateStr !== serverStateStr) {
+                const mergedJobs = JSON.parse(JSON.stringify(categorizedJobs));
+
+                const draggedItem = newJobs[destination.droppableId][finalIndex];
+
+                Object.keys(mergedJobs).forEach(column => {
+                    mergedJobs[column] = mergedJobs[column].filter(
+                        job => job.jobId !== draggedItem.jobId
+                    );
+                });
+                const newSortedIndex = getSortedIndex(draggedItem, mergedJobs[destination.droppableId], sortOption[destination.droppableId]);
+                const newFinalIndex = newSortedIndex === -1 ? mergedJobs[destination.droppableId].length : newSortedIndex;
+                mergedJobs[destination.droppableId].splice(newFinalIndex, 0, draggedItem);
+
+                setJobs(mergedJobs);
+            }
         } catch (error) {
             console.error('Error updating job status:', error);
+            fetchJobs();
         }
-    }, []);
+    }, [jobs, fetchJobs, sortOption]);
 
     const handleLabelClick = useCallback((e, jobId) => {
         e.stopPropagation();
@@ -187,6 +273,10 @@ const JobBoard = () => {
         setIsJobModalOpen(true); // Open the modal
     }, []);
 
+    const handleTechnicianChange = useCallback((techId) => {
+        setSelectedTechnician(techId);
+    }, []);
+
     const openJobModal = useCallback((job, event) => {
         if (event) {
             event.stopPropagation(); // Prevent triggering the label dropdown
@@ -195,25 +285,14 @@ const JobBoard = () => {
         setIsJobModalOpen(true); // Open the job modal
     }, []);
 
-
+    useEffect(() => {
+        fetchJobs();
+    }, [fetchJobs, refreshTrigger]);
     const closeJobModal = useCallback(() => {
         setIsJobModalOpen(false);
         setSelectedJob(null);
+        setRefreshTrigger(prev => prev + 1); // Trigger refresh when modal closes
     }, []);
-
-    const handleJobUpdate = useCallback((updatedJob) => {
-        setJobs(prevJobs => {
-            const newJobs = {...prevJobs};
-            Object.keys(newJobs).forEach(columnName => {
-                const jobIndex = newJobs[columnName].findIndex(job => job.jobId === updatedJob.jobId);
-                if (jobIndex !== -1) {
-                    newJobs[columnName][jobIndex] = updatedJob;
-                }
-            });
-            return newJobs;
-        });
-        closeJobModal();
-    }, [closeJobModal]);
 
     const generateColor = useCallback((initials) => {
         const colors = [
@@ -224,12 +303,6 @@ const JobBoard = () => {
         return colors[colorIndex];
     }, []);
 
-    const [sortOption, setSortOption] = useState({
-        'to-do': 'newest',
-        'in-progress': 'newest',
-        'completed': 'newest'
-    });
-
     const handleSort = useCallback((columnName, option) => {
         setSortOption(prev => ({...prev, [columnName]: option}));
     }, []);
@@ -238,16 +311,27 @@ const JobBoard = () => {
         return Object.entries(filteredJobs).reduce((acc, [columnName, columnJobs]) => {
             const sorted = [...columnJobs].sort((a, b) => {
                 switch (sortOption[columnName]) {
-                    case 'oldest':
-                        return new Date(a.createdAt) - new Date(b.createdAt);
                     case 'newest':
-                        return new Date(b.createdAt) - new Date(a.createdAt);
+                        // First compare by updatedAt dates
+                        const dateCompare = new Date(b.updatedAt) - new Date(a.updatedAt);
+                        // If dates are equal, sort by jobId (highest first)
+                        return dateCompare === 0 ? b.jobId - a.jobId : dateCompare;
+
+                    case 'oldest':
+                        const oldestDateCompare = new Date(a.updatedAt) - new Date(b.updatedAt);
+                        // If dates are equal, sort by jobId (highest first)
+                        return oldestDateCompare === 0 ? b.jobId - a.jobId : oldestDateCompare;
+
                     case 'highest':
                         return (b.invoiceAmount || 0) - (a.invoiceAmount || 0);
+
                     case 'lowest':
                         return (a.invoiceAmount || 0) - (b.invoiceAmount || 0);
+
                     default:
-                        return 0;
+
+                        const defaultDateCompare = new Date(b.updatedAt) - new Date(a.updatedAt);
+                        return defaultDateCompare === 0 ? b.jobId - a.jobId : defaultDateCompare;
                 }
             });
             acc[columnName] = sorted;
@@ -291,7 +375,9 @@ const JobBoard = () => {
                         </div>
                     )}
                 </div>
-                <div className="text-xs font-medium text-gray-500">{job.invoiceAmount || 'N/A'}</div>
+                <div className="font-small text-gray-500" style={{fontSize: '10px'}}>
+                    ${job.amount || 'N/A'}
+                </div>
             </div>
         </div>
     ), [generateColor, handleLabelClick, openJobModal]);
@@ -308,13 +394,22 @@ const JobBoard = () => {
                         <h1 className="text-2xl font-bold text-gray-500">Job Board</h1>
                         <div
                             className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 w-full md:w-auto">
+
                             <div className="relative">
+                                <AssignedToDropdown
+                                    onTechnicianChange={handleTechnicianChange}
+                                />
+                            </div>
+
+                            <div className="relative">
+
+
                                 <input
                                     type="text"
-                                    placeholder="Search jobs..."
+                                    placeholder="Search job #ID or rego..."
                                     className="w-full md:w-64 pl-8 pr-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                                     value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onChange={handleSearchChange}
                                 />
                                 <svg
                                     className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2"
@@ -325,6 +420,7 @@ const JobBoard = () => {
                             </div>
                             <button
                                 onClick={handleCreateJob}
+                                // onClose={closeJobModal}
                                 className="bg-blue-500 text-white px-4 py-2 rounded-md shadow hover:bg-blue-600 transition duration-300"
                             >
                                 Create Job
@@ -334,7 +430,7 @@ const JobBoard = () => {
                 </div>
             </header>
 
-            <DragDropContext onDragEnd={handleDragEnd}>
+            <DragDropContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
             <div className="flex-1 overflow-hidden bg-gray-100">
                     <div className="flex h-full">
                         {Object.entries(sortedJobs).map(([columnName, columnJobs]) => (
@@ -362,6 +458,7 @@ const JobBoard = () => {
                                             </select>
                                         </div>
                                         <div className="flex-1 overflow-y-auto p-2 space-y-2">
+
                                             {columnJobs.map((job, index) => (
 
                                                 <Draggable key={job.jobId} draggableId={job.jobId.toString()} index={index}>
@@ -383,8 +480,6 @@ const JobBoard = () => {
                     isOpen={isJobModalOpen}
                     onClose={closeJobModal}
                     job={selectedJob}
-
-                    // Pass other necessary props like technicians, customers, vehicles
                 />
             )}
             <div
@@ -406,6 +501,5 @@ const JobBoard = () => {
         </div>
     );
 };
-
 
 export default React.memo(JobBoard);
